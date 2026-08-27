@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tracker MG - Carrito</title>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f2f2f7;
+        color: #111;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    h1 {
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #666;
+        margin-bottom: 25px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 15px;
+    }
+
+    .status {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .ok {
+        color: #198754;
+    }
+
+    .waiting {
+        color: #d97706;
+    }
+
+    .error {
+        color: #dc3545;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .value {
+        font-size: 26px;
+        font-weight: 600;
+    }
+
+    .label {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+
+    button {
+        width: 100%;
+        padding: 17px;
+        border: none;
+        border-radius: 14px;
+        font-size: 17px;
+        font-weight: bold;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+
+    #permissionButton {
+        background: #007aff;
+        color: white;
+    }
+
+    #startButton {
+        background: #198754;
+        color: white;
+    }
+
+    #stopButton {
+        background: #dc3545;
+        color: white;
+    }
+
+    button:disabled {
+        background: #aaa;
+    }
+
+    .counter {
+        text-align: center;
+        font-size: 40px;
+        font-weight: 700;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🛒 Tracker MG</h1>
+    <div class="subtitle">Prueba de sensores para recorrido de carrito</div>
+
+    <div class="card">
+        <div class="label">ESTADO DE SENSORES</div>
+        <div id="status" class="status waiting">
+            ● Esperando autorización
+        </div>
+    </div>
+
+    <button id="permissionButton">
+        ACTIVAR SENSORES
+    </button>
+
+    <div class="card">
+        <div class="label">ORIENTACIÓN</div>
+        <div class="value">
+            <span id="heading">---</span>°
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">ACELERACIÓN m/s²</div>
+
+        <div class="grid">
+            <div>
+                <div class="label">X</div>
+                <div class="value" id="accX">---</div>
+            </div>
+
+            <div>
+                <div class="label">Y</div>
+                <div class="value" id="accY">---</div>
+            </div>
+
+            <div>
+                <div class="label">Z</div>
+                <div class="value" id="accZ">---</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">ROTACIÓN °/s</div>
+
+        <div class="grid">
+            <div>
+                <div class="label">Alpha</div>
+                <div class="value" id="rotA">---</div>
+            </div>
+
+            <div>
+                <div class="label">Beta</div>
+                <div class="value" id="rotB">---</div>
+            </div>
+
+            <div>
+                <div class="label">Gamma</div>
+                <div class="value" id="rotG">---</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">MUESTRAS REGISTRADAS</div>
+        <div id="samples" class="counter">0</div>
+    </div>
+
+    <button id="startButton" disabled>
+        ▶ INICIAR PRUEBA
+    </button>
+
+    <button id="stopButton" disabled>
+        ■ FINALIZAR PRUEBA
+    </button>
+
+</div>
+
+<script>
+
+let sensorsActive = false;
+let recording = false;
+let sampleCount = 0;
+let data = [];
+
+const statusEl = document.getElementById("status");
+const permissionButton = document.getElementById("permissionButton");
+const startButton = document.getElementById("startButton");
+const stopButton = document.getElementById("stopButton");
+
+function number(value) {
+    if (value === null || value === undefined) return "---";
+    return Number(value).toFixed(2);
+}
+
+async function activateSensors() {
+
+    try {
+
+        if (
+            typeof DeviceMotionEvent !== "undefined" &&
+            typeof DeviceMotionEvent.requestPermission === "function"
+        ) {
+
+            const motionPermission =
+                await DeviceMotionEvent.requestPermission();
+
+            if (motionPermission !== "granted") {
+                throw new Error("Permiso de movimiento rechazado");
+            }
+        }
+
+        if (
+            typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+
+            const orientationPermission =
+                await DeviceOrientationEvent.requestPermission();
+
+            if (orientationPermission !== "granted") {
+                throw new Error("Permiso de orientación rechazado");
+            }
+        }
+
+        window.addEventListener("devicemotion", motionHandler);
+        window.addEventListener("deviceorientation", orientationHandler);
+
+        sensorsActive = true;
+
+        statusEl.textContent = "● Sensores activos";
+        statusEl.className = "status ok";
+
+        permissionButton.disabled = true;
+        permissionButton.textContent = "SENSORES ACTIVADOS";
+
+        startButton.disabled = false;
+
+    } catch (error) {
+
+        statusEl.textContent = "● " + error.message;
+        statusEl.className = "status error";
+
+    }
+}
+
+function motionHandler(event) {
+
+    const acc = event.acceleration;
+    const rot = event.rotationRate;
+
+    if (acc) {
+        document.getElementById("accX").textContent = number(acc.x);
+        document.getElementById("accY").textContent = number(acc.y);
+        document.getElementById("accZ").textContent = number(acc.z);
+    }
+
+    if (rot) {
+        document.getElementById("rotA").textContent = number(rot.alpha);
+        document.getElementById("rotB").textContent = number(rot.beta);
+        document.getElementById("rotG").textContent = number(rot.gamma);
+    }
+
+    if (recording) {
+
+        data.push({
+            time: Date.now(),
+            ax: acc ? acc.x : null,
+            ay: acc ? acc.y : null,
+            az: acc ? acc.z : null,
+            alpha: rot ? rot.alpha : null,
+            beta: rot ? rot.beta : null,
+            gamma: rot ? rot.gamma : null
+        });
+
+        sampleCount++;
+
+        document.getElementById("samples").textContent =
+            sampleCount;
+    }
+}
+
+function orientationHandler(event) {
+
+    let heading;
+
+    if (event.webkitCompassHeading !== undefined) {
+        heading = event.webkitCompassHeading;
+    } else {
+        heading = event.alpha;
+    }
+
+    document.getElementById("heading").textContent =
+        number(heading);
+}
+
+function startRecording() {
+
+    data = [];
+    sampleCount = 0;
+    recording = true;
+
+    document.getElementById("samples").textContent = "0";
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+
+    statusEl.textContent = "● GRABANDO RECORRIDO";
+    statusEl.className = "status ok";
+}
+
+function stopRecording() {
+
+    recording = false;
+
+    startButton.disabled = false;
+    stopButton.disabled = true;
+
+    statusEl.textContent =
+        "● Prueba finalizada — " +
+        sampleCount +
+        " muestras";
+
+    statusEl.className = "status waiting";
+
+    console.log(data);
+}
+
+permissionButton.addEventListener(
+    "click",
+    activateSensors
+);
+
+startButton.addEventListener(
+    "click",
+    startRecording
+);
+
+stopButton.addEventListener(
+    "click",
+    stopRecording
+);
+
+</script>
+
+</body>
+</html>
