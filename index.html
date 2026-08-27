@@ -3,122 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Tracker MG - V0.2</title>
+<title>Tracker MG V0.3</title>
 
 <style>
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        margin: 0;
-        padding: 20px;
-        background: #f2f2f7;
-        color: #111;
-    }
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    margin:0;
+    padding:18px;
+    background:#f2f2f7;
+    color:#111;
+}
 
-    .container {
-        max-width: 650px;
-        margin: auto;
-    }
+.container{
+    max-width:650px;
+    margin:auto;
+}
 
-    h1 {
-        margin-bottom: 5px;
-    }
+h1{
+    margin:4px 0;
+}
 
-    .subtitle {
-        color: #666;
-        margin-bottom: 20px;
-    }
+.subtitle{
+    color:#666;
+    margin-bottom:18px;
+}
 
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 18px;
-        margin-bottom: 15px;
-    }
+.card{
+    background:white;
+    border-radius:16px;
+    padding:17px;
+    margin-bottom:14px;
+}
 
-    .status {
-        font-size: 18px;
-        font-weight: bold;
-    }
+.label{
+    font-size:12px;
+    color:#777;
+    margin-bottom:5px;
+}
 
-    .ok { color: #198754; }
-    .waiting { color: #d97706; }
-    .error { color: #dc3545; }
+.value{
+    font-size:25px;
+    font-weight:650;
+}
 
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
+.big{
+    font-size:34px;
+    font-weight:700;
+}
 
-    .value {
-        font-size: 24px;
-        font-weight: 600;
-    }
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
 
-    .label {
-        color: #777;
-        font-size: 13px;
-        margin-bottom: 4px;
-    }
+.status{
+    font-size:18px;
+    font-weight:bold;
+}
 
-    button {
-        width: 100%;
-        padding: 17px;
-        border: none;
-        border-radius: 14px;
-        font-size: 17px;
-        font-weight: bold;
-        margin-top: 10px;
-        cursor: pointer;
-    }
+.ok{color:#198754;}
+.waiting{color:#d97706;}
+.error{color:#dc3545;}
 
-    button:disabled {
-        background: #aaa !important;
-    }
+button{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:16px;
+    font-size:16px;
+    font-weight:bold;
+    margin-top:9px;
+}
 
-    #permissionButton {
-        background: #007aff;
-        color: white;
-    }
+button:disabled{
+    background:#aaa !important;
+    color:white;
+}
 
-    #startButton {
-        background: #198754;
-        color: white;
-    }
+.blue{
+    background:#007aff;
+    color:white;
+}
 
-    #stopButton {
-        background: #dc3545;
-        color: white;
-    }
+.green{
+    background:#198754;
+    color:white;
+}
 
-    #resetButton {
-        background: #444;
-        color: white;
-    }
+.red{
+    background:#dc3545;
+    color:white;
+}
 
-    #csvButton {
-        background: #6f42c1;
-        color: white;
-    }
+.orange{
+    background:#ff9500;
+    color:white;
+}
 
-    canvas {
-        width: 100%;
-        height: 420px;
-        background: #fafafa;
-        border-radius: 14px;
-        border: 1px solid #ddd;
-        display: block;
-    }
+.gray{
+    background:#555;
+    color:white;
+}
 
-    .big {
-        font-size: 32px;
-        font-weight: 700;
-    }
+.purple{
+    background:#6f42c1;
+    color:white;
+}
 
-    .small {
-        color: #666;
-        font-size: 13px;
-    }
+input{
+    width:100%;
+    box-sizing:border-box;
+    font-size:22px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+canvas{
+    width:100%;
+    background:#fafafa;
+    border:1px solid #ddd;
+    border-radius:14px;
+    display:block;
+}
+
+.note{
+    font-size:13px;
+    line-height:1.4;
+    color:#666;
+    margin-top:10px;
+}
+
+.calibration-ok{
+    padding:10px;
+    border-radius:10px;
+    background:#eaf8ef;
+    color:#17713c;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.calibration-wait{
+    padding:10px;
+    border-radius:10px;
+    background:#fff5df;
+    color:#9a6500;
+    font-weight:bold;
+    margin-top:10px;
+}
 </style>
 </head>
 
@@ -126,439 +159,1146 @@
 
 <div class="container">
 
-    <h1>🛒 Tracker MG V0.2</h1>
-    <div class="subtitle">Primera prueba de trazado XY</div>
+<h1>🛒 Tracker MG V0.3</h1>
+<div class="subtitle">Calibración + recorrido interno XY</div>
 
-    <div class="card">
-        <div class="label">ESTADO</div>
-        <div id="status" class="status waiting">
-            ● Esperando autorización
-        </div>
+<div class="card">
+    <div class="label">ESTADO GENERAL</div>
+    <div id="status" class="status waiting">
+        ● Esperando sensores
     </div>
+</div>
 
-    <button id="permissionButton">
-        ACTIVAR SENSORES
-    </button>
+<button id="sensorButton" class="blue">
+    ACTIVAR SENSORES
+</button>
 
-    <div class="card">
-        <div class="grid">
-            <div>
-                <div class="label">ORIENTACIÓN</div>
-                <div class="value"><span id="heading">---</span>°</div>
-            </div>
+<div class="card">
 
-            <div>
-                <div class="label">TIEMPO</div>
-                <div class="value"><span id="elapsed">0.0</span> s</div>
-            </div>
+    <div class="grid">
 
-            <div>
-                <div class="label">X estimado</div>
-                <div class="value"><span id="posX">0.00</span></div>
-            </div>
-
-            <div>
-                <div class="label">Y estimado</div>
-                <div class="value"><span id="posY">0.00</span></div>
+        <div>
+            <div class="label">ORIENTACIÓN</div>
+            <div class="value">
+                <span id="heading">---</span>°
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="label">TRAZADO</div>
-        <canvas id="mapCanvas" width="600" height="600"></canvas>
-        <div class="small">
-            Esta versión es experimental. Primero queremos comprobar la forma del recorrido.
+        <div>
+            <div class="label">MOVIMIENTO</div>
+            <div class="value" id="movementStatus">
+                ---
+            </div>
         </div>
+
+        <div>
+            <div class="label">ENERGÍA MOVIMIENTO</div>
+            <div class="value" id="motionEnergy">
+                0.000
+            </div>
+        </div>
+
+        <div>
+            <div class="label">FRECUENCIA</div>
+            <div class="value">
+                <span id="frequency">---</span> Hz
+            </div>
+        </div>
+
     </div>
-
-    <div class="card">
-        <div class="label">MUESTRAS</div>
-        <div id="samples" class="big">0</div>
-    </div>
-
-    <button id="startButton" disabled>
-        ▶ INICIAR PRUEBA
-    </button>
-
-    <button id="stopButton" disabled>
-        ■ FINALIZAR PRUEBA
-    </button>
-
-    <button id="resetButton">
-        ↻ REINICIAR TRAZADO
-    </button>
-
-    <button id="csvButton" disabled>
-        DESCARGAR CSV
-    </button>
 
 </div>
+
+
+<div class="card">
+
+    <h2>1. Calibración</h2>
+
+    <div class="note">
+        Poné el iPhone fijo y horizontal en el carrito.
+        La parte superior del teléfono debe apuntar hacia adelante.
+    </div>
+
+    <br>
+
+    <div class="label">DISTANCIA REAL A RECORRER</div>
+
+    <input
+        id="calibrationDistance"
+        type="number"
+        value="5"
+        min="1"
+        max="50"
+        step="0.5"
+    >
+
+    <button
+        id="startCalibration"
+        class="orange"
+        disabled
+    >
+        ▶ INICIAR CALIBRACIÓN
+    </button>
+
+    <button
+        id="stopCalibration"
+        class="red"
+        disabled
+    >
+        ■ FINALIZAR CALIBRACIÓN
+    </button>
+
+    <div
+        id="calibrationResult"
+        class="calibration-wait"
+    >
+        Todavía no calibrado.
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <h2>2. Recorrido</h2>
+
+    <div class="grid">
+
+        <div>
+            <div class="label">DISTANCIA</div>
+            <div class="big">
+                <span id="distance">0.0</span> m
+            </div>
+        </div>
+
+        <div>
+            <div class="label">TIEMPO</div>
+            <div class="big">
+                <span id="time">0</span> s
+            </div>
+        </div>
+
+        <div>
+            <div class="label">X</div>
+            <div class="value" id="posX">
+                0.00
+            </div>
+        </div>
+
+        <div>
+            <div class="label">Y</div>
+            <div class="value" id="posY">
+                0.00
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <div class="label">TRAZADO XY</div>
+
+    <canvas
+        id="canvas"
+        width="700"
+        height="700"
+    ></canvas>
+
+    <div class="note">
+        El punto rojo es el inicio. La línea azul es el recorrido estimado.
+    </div>
+
+</div>
+
+
+<button
+    id="startRoute"
+    class="green"
+    disabled
+>
+    ▶ INICIAR RECORRIDO
+</button>
+
+<button
+    id="stopRoute"
+    class="red"
+    disabled
+>
+    ■ FINALIZAR RECORRIDO
+</button>
+
+<button
+    id="resetRoute"
+    class="gray"
+>
+    ↻ REINICIAR
+</button>
+
+<button
+    id="downloadCSV"
+    class="purple"
+    disabled
+>
+    DESCARGAR CSV
+</button>
+
+</div>
+
 
 <script>
 
 let sensorsActive = false;
+
+let calibrating = false;
 let recording = false;
 
-let data = [];
-let sampleCount = 0;
+let headingRaw = 0;
+let headingSmooth = null;
 
-let heading = 0;
+let lastMotionTime = null;
 
-let posX = 0;
-let posY = 0;
+let calibrationEnergy = 0;
+let calibrationFactor = null;
 
-let velX = 0;
-let velY = 0;
+let totalDistance = 0;
 
-let lastTime = null;
-let startTime = null;
+let x = 0;
+let y = 0;
 
-let filteredForwardAcc = 0;
+let routeData = [];
 
-const ACC_THRESHOLD = 0.10;
-const DAMPING = 0.88;
-const SCALE = 18;
+let routeStartTime = null;
 
-const statusEl = document.getElementById("status");
-const headingEl = document.getElementById("heading");
-const elapsedEl = document.getElementById("elapsed");
-const posXEl = document.getElementById("posX");
-const posYEl = document.getElementById("posY");
-const samplesEl = document.getElementById("samples");
+let sampleCounter = 0;
+let frequencyStart = performance.now();
 
-const permissionButton = document.getElementById("permissionButton");
-const startButton = document.getElementById("startButton");
-const stopButton = document.getElementById("stopButton");
-const resetButton = document.getElementById("resetButton");
-const csvButton = document.getElementById("csvButton");
+let filteredEnergy = 0;
 
-const canvas = document.getElementById("mapCanvas");
-const ctx = canvas.getContext("2d");
+const MOVEMENT_THRESHOLD = 0.055;
 
-function number(value) {
-    if (value === null || value === undefined || isNaN(value)) return "---";
-    return Number(value).toFixed(2);
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const statusEl =
+    document.getElementById("status");
+
+const headingEl =
+    document.getElementById("heading");
+
+const movementEl =
+    document.getElementById("movementStatus");
+
+const energyEl =
+    document.getElementById("motionEnergy");
+
+const frequencyEl =
+    document.getElementById("frequency");
+
+const distanceEl =
+    document.getElementById("distance");
+
+const timeEl =
+    document.getElementById("time");
+
+const posXEl =
+    document.getElementById("posX");
+
+const posYEl =
+    document.getElementById("posY");
+
+const calibrationResult =
+    document.getElementById("calibrationResult");
+
+const sensorButton =
+    document.getElementById("sensorButton");
+
+const startCalibration =
+    document.getElementById("startCalibration");
+
+const stopCalibration =
+    document.getElementById("stopCalibration");
+
+const startRoute =
+    document.getElementById("startRoute");
+
+const stopRoute =
+    document.getElementById("stopRoute");
+
+const resetRoute =
+    document.getElementById("resetRoute");
+
+const downloadCSV =
+    document.getElementById("downloadCSV");
+
+
+function format(v,d=2){
+
+    if(v === null ||
+       v === undefined ||
+       isNaN(v)){
+        return "---";
+    }
+
+    return Number(v).toFixed(d);
 }
 
-function drawBackground() {
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawGrid(){
 
-    ctx.strokeStyle = "#e5e5e5";
-    ctx.lineWidth = 1;
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-    const spacing = 30;
+    ctx.strokeStyle="#e2e2e2";
+    ctx.lineWidth=1;
 
-    for (let x = 0; x <= canvas.width; x += spacing) {
+    const spacing=35;
+
+    for(
+        let i=0;
+        i<=canvas.width;
+        i+=spacing
+    ){
+
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+
+        ctx.moveTo(
+            i,
+            0
+        );
+
+        ctx.lineTo(
+            i,
+            canvas.height
+        );
+
         ctx.stroke();
     }
 
-    for (let y = 0; y <= canvas.height; y += spacing) {
+    for(
+        let i=0;
+        i<=canvas.height;
+        i+=spacing
+    ){
+
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+
+        ctx.moveTo(
+            0,
+            i
+        );
+
+        ctx.lineTo(
+            canvas.width,
+            i
+        );
+
         ctx.stroke();
     }
 
-    ctx.fillStyle = "#111";
+    const cx =
+        canvas.width/2;
+
+    const cy =
+        canvas.height/2;
+
+    ctx.fillStyle="#dc3545";
+
     ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 6, 0, Math.PI * 2);
+
+    ctx.arc(
+        cx,
+        cy,
+        7,
+        0,
+        Math.PI*2
+    );
+
     ctx.fill();
 
-    ctx.fillStyle = "#555";
-    ctx.font = "14px sans-serif";
-    ctx.fillText("INICIO", canvas.width / 2 + 10, canvas.height / 2 - 10);
+    ctx.fillStyle="#555";
+    ctx.font="15px sans-serif";
+
+    ctx.fillText(
+        "INICIO",
+        cx+12,
+        cy-10
+    );
 }
 
-drawBackground();
+drawGrid();
 
-async function activateSensors() {
 
-    try {
+async function activateSensors(){
 
-        if (
+    try{
+
+        if(
             typeof DeviceMotionEvent !== "undefined" &&
             typeof DeviceMotionEvent.requestPermission === "function"
-        ) {
-            const result = await DeviceMotionEvent.requestPermission();
+        ){
 
-            if (result !== "granted") {
-                throw new Error("Permiso de movimiento rechazado");
+            const result =
+                await DeviceMotionEvent.requestPermission();
+
+            if(result !== "granted"){
+                throw new Error(
+                    "Movimiento rechazado"
+                );
             }
         }
 
-        if (
+        if(
             typeof DeviceOrientationEvent !== "undefined" &&
             typeof DeviceOrientationEvent.requestPermission === "function"
-        ) {
-            const result = await DeviceOrientationEvent.requestPermission();
+        ){
 
-            if (result !== "granted") {
-                throw new Error("Permiso de orientación rechazado");
+            const result =
+                await DeviceOrientationEvent.requestPermission();
+
+            if(result !== "granted"){
+                throw new Error(
+                    "Orientación rechazada"
+                );
             }
         }
 
-        window.addEventListener("devicemotion", motionHandler);
-        window.addEventListener("deviceorientation", orientationHandler);
+        window.addEventListener(
+            "devicemotion",
+            motionHandler
+        );
 
-        sensorsActive = true;
+        window.addEventListener(
+            "deviceorientation",
+            orientationHandler
+        );
 
-        statusEl.textContent = "● Sensores activos";
-        statusEl.className = "status ok";
+        sensorsActive=true;
 
-        permissionButton.disabled = true;
-        permissionButton.textContent = "SENSORES ACTIVADOS";
+        statusEl.textContent=
+            "● Sensores activos";
 
-        startButton.disabled = false;
+        statusEl.className=
+            "status ok";
 
-    } catch (error) {
+        sensorButton.disabled=true;
 
-        statusEl.textContent = "● " + error.message;
-        statusEl.className = "status error";
+        sensorButton.textContent=
+            "SENSORES ACTIVADOS";
 
+        startCalibration.disabled=false;
+
+    }
+    catch(error){
+
+        statusEl.textContent=
+            "● "+error.message;
+
+        statusEl.className=
+            "status error";
     }
 }
 
-function orientationHandler(event) {
 
-    if (event.webkitCompassHeading !== undefined) {
-        heading = event.webkitCompassHeading;
-    } else if (event.alpha !== null) {
-        heading = 360 - event.alpha;
+function orientationHandler(event){
+
+    let h;
+
+    if(
+        event.webkitCompassHeading !== undefined
+    ){
+        h=event.webkitCompassHeading;
+    }
+    else{
+        h=360-event.alpha;
     }
 
-    heading = (heading + 360) % 360;
-
-    headingEl.textContent = number(heading);
-}
-
-function motionHandler(event) {
-
-    if (!recording) return;
-
-    const now = performance.now();
-
-    if (lastTime === null) {
-        lastTime = now;
+    if(
+        h === null ||
+        h === undefined ||
+        isNaN(h)
+    ){
         return;
     }
 
-    let dt = (now - lastTime) / 1000;
+    h=(h+360)%360;
 
-    if (dt > 0.2) dt = 0.2;
+    headingRaw=h;
 
-    lastTime = now;
-
-    const acc = event.acceleration || {};
-
-    const ax = acc.x || 0;
-    const ay = acc.y || 0;
-    const az = acc.z || 0;
 
     /*
-       En esta primera prueba asumimos:
-       teléfono casi horizontal y fijo al carrito.
-       Usaremos principalmente la aceleración Y
-       como estimación de avance.
+    Suavizado circular de brújula.
+    Evita problemas entre 359° y 1°.
     */
 
-    let forwardAcc = -ay;
+    if(headingSmooth===null){
 
-    filteredForwardAcc =
-        filteredForwardAcc * 0.80 +
-        forwardAcc * 0.20;
+        headingSmooth=h;
 
-    if (Math.abs(filteredForwardAcc) < ACC_THRESHOLD) {
-        filteredForwardAcc = 0;
+    }
+    else{
+
+        let diff=
+            ((h-headingSmooth+540)%360)-180;
+
+        headingSmooth+=
+            diff*0.18;
+
+        headingSmooth=
+            (headingSmooth+360)%360;
     }
 
-    let angle = heading * Math.PI / 180;
-
-    let worldAx = Math.sin(angle) * filteredForwardAcc;
-    let worldAy = Math.cos(angle) * filteredForwardAcc;
-
-    velX += worldAx * dt;
-    velY += worldAy * dt;
-
-    velX *= DAMPING;
-    velY *= DAMPING;
-
-    if (Math.abs(filteredForwardAcc) < ACC_THRESHOLD) {
-        velX *= 0.75;
-        velY *= 0.75;
-    }
-
-    posX += velX * dt;
-    posY += velY * dt;
-
-    sampleCount++;
-
-    const elapsed = (now - startTime) / 1000;
-
-    samplesEl.textContent = sampleCount;
-    elapsedEl.textContent = elapsed.toFixed(1);
-    posXEl.textContent = posX.toFixed(2);
-    posYEl.textContent = posY.toFixed(2);
-
-    data.push({
-        time_seconds: elapsed.toFixed(3),
-        heading: heading.toFixed(2),
-        ax: ax.toFixed(4),
-        ay: ay.toFixed(4),
-        az: az.toFixed(4),
-        filtered_forward_acc: filteredForwardAcc.toFixed(4),
-        velocity_x: velX.toFixed(4),
-        velocity_y: velY.toFixed(4),
-        x: posX.toFixed(4),
-        y: posY.toFixed(4)
-    });
-
-    drawPoint(posX, posY);
+    headingEl.textContent=
+        headingSmooth.toFixed(1);
 }
 
-function drawPoint(x, y) {
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+function motionHandler(event){
 
-    const px = centerX + x * SCALE;
-    const py = centerY - y * SCALE;
+    const now=
+        performance.now();
 
-    if (data.length < 2) return;
+    sampleCounter++;
 
-    const previous = data[data.length - 2];
+    if(
+        now-frequencyStart >=1000
+    ){
 
-    const previousX =
-        centerX + Number(previous.x) * SCALE;
+        frequencyEl.textContent=
+            sampleCounter;
 
-    const previousY =
-        centerY - Number(previous.y) * SCALE;
+        sampleCounter=0;
 
-    ctx.strokeStyle = "#007aff";
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
+        frequencyStart=now;
+    }
+
+
+    if(lastMotionTime===null){
+
+        lastMotionTime=now;
+        return;
+    }
+
+    let dt=
+        (now-lastMotionTime)/1000;
+
+    lastMotionTime=now;
+
+    if(dt>0.1){
+        dt=0.1;
+    }
+
+
+    const a=
+        event.acceleration;
+
+    if(!a){
+        return;
+    }
+
+    const ax=a.x||0;
+    const ay=a.y||0;
+    const az=a.z||0;
+
+
+    /*
+    Magnitud total del movimiento.
+    Usamos todos los ejes porque
+    el carrito transmite pequeñas
+    vibraciones incluso cuando
+    avanza casi a velocidad constante.
+    */
+
+    let magnitude=
+        Math.sqrt(
+            ax*ax+
+            ay*ay+
+            az*az
+        );
+
+
+    /*
+    Filtro para reducir ruido.
+    */
+
+    filteredEnergy=
+        filteredEnergy*0.75+
+        magnitude*0.25;
+
+
+    let effectiveEnergy=
+        filteredEnergy-
+        MOVEMENT_THRESHOLD;
+
+    if(effectiveEnergy<0){
+        effectiveEnergy=0;
+    }
+
+
+    energyEl.textContent=
+        effectiveEnergy.toFixed(3);
+
+
+    if(effectiveEnergy>0){
+
+        movementEl.textContent=
+            "MOVIÉNDOSE";
+
+        movementEl.style.color=
+            "#198754";
+    }
+    else{
+
+        movementEl.textContent=
+            "DETENIDO";
+
+        movementEl.style.color=
+            "#777";
+    }
+
+
+    /*
+    CALIBRACIÓN
+    */
+
+    if(calibrating){
+
+        calibrationEnergy+=
+            effectiveEnergy*dt;
+    }
+
+
+    /*
+    RECORRIDO
+    */
+
+    if(
+        recording &&
+        calibrationFactor!==null &&
+        headingSmooth!==null
+    ){
+
+        let distanceStep=
+            effectiveEnergy*
+            dt*
+            calibrationFactor;
+
+
+        /*
+        Protección contra saltos anormales.
+        */
+
+        if(distanceStep>0.20){
+            distanceStep=0.20;
+        }
+
+
+        let angle=
+            headingSmooth*
+            Math.PI/180;
+
+
+        let dx=
+            Math.sin(angle)*
+            distanceStep;
+
+        let dy=
+            Math.cos(angle)*
+            distanceStep;
+
+
+        x+=dx;
+        y+=dy;
+
+        totalDistance+=
+            distanceStep;
+
+
+        distanceEl.textContent=
+            totalDistance.toFixed(1);
+
+        posXEl.textContent=
+            x.toFixed(2);
+
+        posYEl.textContent=
+            y.toFixed(2);
+
+
+        const elapsed=
+            (now-routeStartTime)/1000;
+
+        timeEl.textContent=
+            elapsed.toFixed(0);
+
+
+        routeData.push({
+
+            time:
+                elapsed.toFixed(3),
+
+            heading:
+                headingSmooth.toFixed(2),
+
+            ax:
+                ax.toFixed(4),
+
+            ay:
+                ay.toFixed(4),
+
+            az:
+                az.toFixed(4),
+
+            energy:
+                effectiveEnergy.toFixed(5),
+
+            distanceStep:
+                distanceStep.toFixed(5),
+
+            totalDistance:
+                totalDistance.toFixed(3),
+
+            x:
+                x.toFixed(4),
+
+            y:
+                y.toFixed(4)
+        });
+
+
+        drawRoute();
+    }
+}
+
+
+function startCalibrationFunction(){
+
+    const d=
+        Number(
+            document.getElementById(
+                "calibrationDistance"
+            ).value
+        );
+
+
+    if(
+        !d ||
+        d<=0
+    ){
+
+        alert(
+            "Ingresá una distancia válida."
+        );
+
+        return;
+    }
+
+
+    calibrationEnergy=0;
+
+    calibrating=true;
+
+
+    calibrationResult.textContent=
+        "CALIBRANDO... caminá "+
+        d+
+        " metros y luego presioná FINALIZAR.";
+
+    calibrationResult.className=
+        "calibration-wait";
+
+
+    startCalibration.disabled=true;
+    stopCalibration.disabled=false;
+
+    startRoute.disabled=true;
+
+    statusEl.textContent=
+        "● CALIBRANDO";
+
+    statusEl.className=
+        "status waiting";
+}
+
+
+function stopCalibrationFunction(){
+
+    calibrating=false;
+
+
+    const realDistance=
+        Number(
+            document.getElementById(
+                "calibrationDistance"
+            ).value
+        );
+
+
+    if(calibrationEnergy<=0.001){
+
+        calibrationResult.textContent=
+            "No se detectó suficiente movimiento. Repetí la calibración.";
+
+        calibrationResult.className=
+            "calibration-wait";
+
+        startCalibration.disabled=false;
+        stopCalibration.disabled=true;
+
+        return;
+    }
+
+
+    calibrationFactor=
+        realDistance/
+        calibrationEnergy;
+
+
+    calibrationResult.innerHTML=
+        "✓ CALIBRADO<br>"+
+        "Distancia: "+
+        realDistance.toFixed(1)+
+        " m<br>"+
+        "Factor: "+
+        calibrationFactor.toFixed(3);
+
+
+    calibrationResult.className=
+        "calibration-ok";
+
+
+    startCalibration.disabled=false;
+    stopCalibration.disabled=true;
+
+    startRoute.disabled=false;
+
+
+    statusEl.textContent=
+        "● Calibración completada";
+
+    statusEl.className=
+        "status ok";
+}
+
+
+function startRouteFunction(){
+
+    resetRouteData();
+
+    recording=true;
+
+    routeStartTime=
+        performance.now();
+
+
+    startRoute.disabled=true;
+
+    stopRoute.disabled=false;
+
+    startCalibration.disabled=true;
+
+    downloadCSV.disabled=true;
+
+
+    statusEl.textContent=
+        "● GRABANDO RECORRIDO";
+
+    statusEl.className=
+        "status ok";
+}
+
+
+function stopRouteFunction(){
+
+    recording=false;
+
+
+    startRoute.disabled=false;
+
+    stopRoute.disabled=true;
+
+    startCalibration.disabled=false;
+
+
+    if(routeData.length>0){
+        downloadCSV.disabled=false;
+    }
+
+
+    statusEl.textContent=
+        "● Recorrido finalizado — "+
+        totalDistance.toFixed(1)+
+        " m";
+
+    statusEl.className=
+        "status waiting";
+}
+
+
+function resetRouteData(){
+
+    routeData=[];
+
+    totalDistance=0;
+
+    x=0;
+    y=0;
+
+    distanceEl.textContent="0.0";
+    timeEl.textContent="0";
+
+    posXEl.textContent="0.00";
+    posYEl.textContent="0.00";
+
+    drawGrid();
+}
+
+
+function resetAll(){
+
+    recording=false;
+    calibrating=false;
+
+    resetRouteData();
+
+    stopRoute.disabled=true;
+    stopCalibration.disabled=true;
+
+    downloadCSV.disabled=true;
+
+
+    if(calibrationFactor!==null){
+
+        startRoute.disabled=false;
+
+    }
+
+
+    if(sensorsActive){
+
+        startCalibration.disabled=false;
+
+        statusEl.textContent=
+            "● Listo";
+
+        statusEl.className=
+            "status waiting";
+    }
+}
+
+
+function drawRoute(){
+
+    if(routeData.length<2){
+        return;
+    }
+
+
+    /*
+    Escala:
+    1 metro = 18 px.
+    Luego podemos hacer zoom automático.
+    */
+
+    const scale=18;
+
+    const cx=
+        canvas.width/2;
+
+    const cy=
+        canvas.height/2;
+
+
+    const p1=
+        routeData[
+            routeData.length-2
+        ];
+
+    const p2=
+        routeData[
+            routeData.length-1
+        ];
+
+
+    const x1=
+        cx+
+        Number(p1.x)*
+        scale;
+
+    const y1=
+        cy-
+        Number(p1.y)*
+        scale;
+
+
+    const x2=
+        cx+
+        Number(p2.x)*
+        scale;
+
+    const y2=
+        cy-
+        Number(p2.y)*
+        scale;
+
+
+    ctx.strokeStyle=
+        "#007aff";
+
+    ctx.lineWidth=4;
+
+    ctx.lineCap=
+        "round";
+
 
     ctx.beginPath();
-    ctx.moveTo(previousX, previousY);
-    ctx.lineTo(px, py);
+
+    ctx.moveTo(
+        x1,
+        y1
+    );
+
+    ctx.lineTo(
+        x2,
+        y2
+    );
+
     ctx.stroke();
 
-    ctx.fillStyle = "#dc3545";
+
+    /*
+    Punto actual
+    */
+
+    ctx.fillStyle=
+        "#198754";
+
     ctx.beginPath();
-    ctx.arc(px, py, 3, 0, Math.PI * 2);
+
+    ctx.arc(
+        x2,
+        y2,
+        4,
+        0,
+        Math.PI*2
+    );
+
     ctx.fill();
 }
 
-function startRecording() {
 
-    resetTracking();
+function downloadCSVFunction(){
 
-    recording = true;
-    startTime = performance.now();
-    lastTime = null;
-
-    startButton.disabled = true;
-    stopButton.disabled = false;
-    csvButton.disabled = true;
-
-    statusEl.textContent = "● GRABANDO RECORRIDO";
-    statusEl.className = "status ok";
-}
-
-function stopRecording() {
-
-    recording = false;
-
-    startButton.disabled = false;
-    stopButton.disabled = true;
-
-    if (data.length > 0) {
-        csvButton.disabled = false;
+    if(routeData.length===0){
+        return;
     }
 
-    statusEl.textContent =
-        "● Prueba finalizada — " +
-        sampleCount +
-        " muestras";
 
-    statusEl.className = "status waiting";
-}
+    const headers=
+        Object.keys(
+            routeData[0]
+        );
 
-function resetTracking() {
 
-    recording = false;
+    let csv=
+        headers.join(",")+
+        "\n";
 
-    data = [];
-    sampleCount = 0;
 
-    posX = 0;
-    posY = 0;
+    routeData.forEach(row=>{
 
-    velX = 0;
-    velY = 0;
-
-    filteredForwardAcc = 0;
-
-    lastTime = null;
-    startTime = null;
-
-    samplesEl.textContent = "0";
-    elapsedEl.textContent = "0.0";
-    posXEl.textContent = "0.00";
-    posYEl.textContent = "0.00";
-
-    drawBackground();
-
-    stopButton.disabled = true;
-    csvButton.disabled = true;
-
-    if (sensorsActive) {
-        startButton.disabled = false;
-        statusEl.textContent = "● Listo para nueva prueba";
-        statusEl.className = "status waiting";
-    }
-}
-
-function downloadCSV() {
-
-    if (data.length === 0) return;
-
-    const headers = Object.keys(data[0]);
-
-    let csv = headers.join(",") + "\n";
-
-    for (const row of data) {
-        csv += headers.map(key => row[key]).join(",") + "\n";
-    }
-
-    const blob = new Blob([csv], {
-        type: "text/csv;charset=utf-8;"
+        csv+=
+            headers.map(
+                key=>row[key]
+            ).join(",")+
+            "\n";
     });
 
-    const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
+    const blob=
+        new Blob(
+            [csv],
+            {
+                type:
+                "text/csv;charset=utf-8;"
+            }
+        );
 
-    a.href = url;
-    a.download = "tracker-mg-recorrido.csv";
 
-    document.body.appendChild(a);
-    a.click();
+    const url=
+        URL.createObjectURL(blob);
 
-    document.body.removeChild(a);
 
-    URL.revokeObjectURL(url);
+    const link=
+        document.createElement("a");
+
+
+    link.href=url;
+
+    link.download=
+        "tracker-mg-v03.csv";
+
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+
+    document.body.removeChild(
+        link
+    );
+
+
+    URL.revokeObjectURL(
+        url
+    );
 }
 
-permissionButton.addEventListener("click", activateSensors);
-startButton.addEventListener("click", startRecording);
-stopButton.addEventListener("click", stopRecording);
-resetButton.addEventListener("click", resetTracking);
-csvButton.addEventListener("click", downloadCSV);
+
+sensorButton.addEventListener(
+    "click",
+    activateSensors
+);
+
+startCalibration.addEventListener(
+    "click",
+    startCalibrationFunction
+);
+
+stopCalibration.addEventListener(
+    "click",
+    stopCalibrationFunction
+);
+
+startRoute.addEventListener(
+    "click",
+    startRouteFunction
+);
+
+stopRoute.addEventListener(
+    "click",
+    stopRouteFunction
+);
+
+resetRoute.addEventListener(
+    "click",
+    resetAll
+);
+
+downloadCSV.addEventListener(
+    "click",
+    downloadCSVFunction
+);
 
 </script>
 
