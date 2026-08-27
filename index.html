@@ -2,151 +2,267 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V0.5</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tracker MG V0.4</title>
 
 <style>
 body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    margin:0;padding:16px;background:#f2f2f7;color:#111
+    margin:0;
+    padding:16px;
+    background:#f2f2f7;
+    color:#111;
 }
-.container{max-width:760px;margin:auto}
-h1{margin:4px 0}
-h2{margin:4px 0 14px}
-.subtitle{color:#666;margin-bottom:18px}
+
+.container{
+    max-width:760px;
+    margin:auto;
+}
+
+h1{ margin:4px 0; }
+
+h2{
+    margin-top:4px;
+    margin-bottom:14px;
+}
+
+.subtitle{
+    color:#666;
+    margin-bottom:18px;
+}
+
 .card{
-    background:white;border-radius:16px;padding:16px;margin-bottom:14px
+    background:white;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
 }
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.label{font-size:12px;color:#777;margin-bottom:4px}
-.value{font-size:24px;font-weight:650}
-.big{font-size:32px;font-weight:750}
-.status{font-size:18px;font-weight:bold}
-.ok{color:#198754}
-.waiting{color:#d97706}
-.error{color:#dc3545}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.label{
+    font-size:12px;
+    color:#777;
+    margin-bottom:4px;
+}
+
+.value{
+    font-size:24px;
+    font-weight:650;
+}
+
+.big{
+    font-size:33px;
+    font-weight:750;
+}
+
+.status{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.ok{color:#198754;}
+.waiting{color:#d97706;}
+.error{color:#dc3545;}
 
 button{
-    width:100%;border:none;border-radius:14px;padding:16px;
-    font-size:16px;font-weight:bold;margin-top:9px
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:16px;
+    font-size:16px;
+    font-weight:bold;
+    margin-top:9px;
 }
-button:disabled{background:#aaa!important;color:white}
-.blue{background:#007aff;color:white}
-.green{background:#198754;color:white}
-.red{background:#dc3545;color:white}
-.orange{background:#ff9500;color:white}
-.gray{background:#555;color:white}
-.purple{background:#6f42c1;color:white}
-.teal{background:#087f8c;color:white}
+
+button:disabled{
+    background:#aaa !important;
+    color:white;
+}
+
+.blue{background:#007aff;color:white;}
+.green{background:#198754;color:white;}
+.red{background:#dc3545;color:white;}
+.orange{background:#ff9500;color:white;}
+.gray{background:#555;color:white;}
+.purple{background:#6f42c1;color:white;}
+.teal{background:#087f8c;color:white;}
 
 input{
-    width:100%;box-sizing:border-box;font-size:20px;padding:12px;
-    border-radius:10px;border:1px solid #ccc
+    width:100%;
+    box-sizing:border-box;
+    font-size:20px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
 }
 
 canvas{
-    width:100%;height:auto;display:block;border:1px solid #ccc;
-    border-radius:12px;background:white
+    width:100%;
+    height:auto;
+    display:block;
+    border:1px solid #ccc;
+    border-radius:12px;
+    background:white;
+    touch-action:manipulation;
 }
 
-.note{color:#666;font-size:13px;line-height:1.45;margin-top:9px}
+.note{
+    color:#666;
+    font-size:13px;
+    line-height:1.45;
+    margin-top:9px;
+}
 
 .box-ok{
-    background:#eaf8ef;color:#17713c;padding:11px;border-radius:10px;
-    margin-top:10px;font-weight:bold
+    background:#eaf8ef;
+    color:#17713c;
+    padding:11px;
+    border-radius:10px;
+    margin-top:10px;
+    font-weight:bold;
 }
+
 .box-wait{
-    background:#fff5df;color:#986500;padding:11px;border-radius:10px;
-    margin-top:10px;font-weight:bold
+    background:#fff5df;
+    color:#986500;
+    padding:11px;
+    border-radius:10px;
+    margin-top:10px;
+    font-weight:bold;
 }
 
 .stop-row{
     display:grid;
-    grid-template-columns:42px 1fr 1fr 1fr;
-    gap:8px;border-top:1px solid #eee;padding:9px 0;font-size:13px
-}
-.stop-head{font-weight:bold;color:#555}
-.badge{
-    display:inline-flex;min-width:28px;height:28px;align-items:center;
-    justify-content:center;border-radius:50%;background:#dc3545;
-    color:white;font-weight:bold
+    grid-template-columns:42px 1fr 1fr;
+    gap:8px;
+    border-top:1px solid #eee;
+    padding:9px 0;
+    font-size:14px;
 }
 
-.cal-row{
-    padding:9px 0;border-top:1px solid #eee;font-size:14px
+.stop-head{
+    font-weight:bold;
+    color:#555;
 }
-hr{border:none;border-top:1px solid #eee;margin:16px 0}
+
+.badge{
+    display:inline-flex;
+    min-width:28px;
+    height:28px;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#dc3545;
+    color:white;
+    font-weight:bold;
+}
+
+hr{
+    border:none;
+    border-top:1px solid #eee;
+    margin:16px 0;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<h1>🛒 Tracker MG V0.5</h1>
+<h1>🛒 Tracker MG V0.4</h1>
 <div class="subtitle">
-Calibración robusta + paradas inteligentes + puntos de control
+Plano real + paradas + puntos de control
 </div>
+
 
 <div class="card">
     <div class="label">ESTADO GENERAL</div>
-    <div id="status" class="status waiting">● Esperando sensores</div>
+
+    <div id="status" class="status waiting">
+        ● Esperando sensores
+    </div>
 </div>
 
-<button id="sensorButton" class="blue">ACTIVAR SENSORES</button>
+
+<button id="sensorButton" class="blue">
+    ACTIVAR SENSORES
+</button>
+
 
 <div class="card">
-<div class="grid">
 
-<div>
-<div class="label">ORIENTACIÓN</div>
-<div class="value"><span id="heading">---</span>°</div>
+    <div class="grid">
+
+        <div>
+            <div class="label">ORIENTACIÓN</div>
+            <div class="value">
+                <span id="heading">---</span>°
+            </div>
+        </div>
+
+        <div>
+            <div class="label">MOVIMIENTO</div>
+            <div id="movementStatus" class="value">
+                ---
+            </div>
+        </div>
+
+        <div>
+            <div class="label">ENERGÍA</div>
+            <div id="motionEnergy" class="value">
+                0.000
+            </div>
+        </div>
+
+        <div>
+            <div class="label">FRECUENCIA</div>
+            <div class="value">
+                <span id="frequency">---</span> Hz
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
-<div>
-<div class="label">MOVIMIENTO</div>
-<div id="movementStatus" class="value">---</div>
-</div>
-
-<div>
-<div class="label">ENERGÍA</div>
-<div id="motionEnergy" class="value">0.000</div>
-</div>
-
-<div>
-<div class="label">FRECUENCIA</div>
-<div class="value"><span id="frequency">---</span> Hz</div>
-</div>
-
-</div>
-</div>
-
-
-<!-- PLANO -->
 
 <div class="card">
 
 <h2>1. Configurar plano</h2>
 
 <div class="note">
-Elegí sobre el plano dos puntos A y B separados por una distancia
-real conocida. Ese mismo tramo será utilizado para calibrar físicamente
-el carrito.
+Primero necesitamos relacionar metros reales con el plano.
+Elegí sobre el plano los dos extremos del mismo tramo de
+5 metros que vas a utilizar físicamente para calibrar el carrito.
 </div>
 
-<div class="label" style="margin-top:14px">DISTANCIA ENTRE A Y B</div>
+<div class="label" style="margin-top:14px;">
+DISTANCIA ENTRE A Y B
+</div>
 
-<input id="mapDistance" type="number" value="5" min="1" step="0.1">
+<input
+    id="mapDistance"
+    type="number"
+    value="5"
+    min="1"
+    step="0.1"
+/>
 
 <button id="mapSetupButton" class="teal">
-📐 MARCAR A Y B EN EL PLANO
+    📐 MARCAR A Y B EN EL PLANO
 </button>
 
 <button id="clearMapButton" class="gray">
-BORRAR PUNTOS DEL PLANO
+    BORRAR PUNTOS DEL PLANO
 </button>
 
 <div id="mapResult" class="box-wait">
-Pendiente: marcar A y B.
+    Pendiente: marcar punto A y punto B.
 </div>
 
 </div>
@@ -156,60 +272,67 @@ Pendiente: marcar A y B.
 
 <h2>Plano Gran Unión</h2>
 
-<canvas id="mapCanvas" width="1200" height="850"></canvas>
+<canvas
+    id="mapCanvas"
+    width="1200"
+    height="850"
+></canvas>
 
-<div id="canvasHelp" class="note">
-Esperando plano.
+<div class="note" id="canvasHelp">
+Esperando configuración del plano.
 </div>
 
 </div>
 
-
-<!-- CALIBRACIÓN -->
 
 <div class="card">
 
 <h2>2. Calibración física</h2>
 
 <div class="note">
-Hacé idealmente <strong>3 pasadas</strong> del mismo tramo.
-La app utilizará la <strong>mediana</strong> de los factores.
-Con una sola pasada ya podés probar, pero tres son mucho más confiables.
+Con el teléfono fijo y horizontal en el carrito,
+ubicáte físicamente en el punto A y avanzá exactamente
+hasta el punto B.
 </div>
 
-<div class="label" style="margin-top:14px">DISTANCIA REAL</div>
+<div class="label" style="margin-top:14px;">
+DISTANCIA REAL
+</div>
 
 <input
-id="calibrationDistance"
-type="number"
-value="5"
-min="1"
-max="50"
-step="0.1"
+    id="calibrationDistance"
+    type="number"
+    value="5"
+    min="1"
+    max="50"
+    step="0.1"
+/>
+
+<button
+    id="startCalibration"
+    class="orange"
+    disabled
 >
-
-<button id="startCalibration" class="orange" disabled>
-▶ INICIAR PASADA DE CALIBRACIÓN
+    ▶ INICIAR CALIBRACIÓN
 </button>
 
-<button id="stopCalibration" class="red" disabled>
-■ FINALIZAR PASADA
+<button
+    id="stopCalibration"
+    class="red"
+    disabled
+>
+    ■ FINALIZAR CALIBRACIÓN
 </button>
 
-<button id="clearCalibration" class="gray">
-BORRAR CALIBRACIONES
-</button>
-
-<div id="calibrationResult" class="box-wait">
-Todavía no calibrado.
+<div
+    id="calibrationResult"
+    class="box-wait"
+>
+    Todavía no calibrado.
 </div>
 
-<div id="calibrationList"></div>
-
 </div>
 
-
-<!-- RECORRIDO -->
 
 <div class="card">
 
@@ -217,76 +340,102 @@ Todavía no calibrado.
 
 <div class="grid">
 
-<div>
-<div class="label">DISTANCIA ESTIMADA</div>
-<div class="big"><span id="distance">0.0</span> m</div>
-</div>
+    <div>
+        <div class="label">DISTANCIA</div>
+        <div class="big">
+            <span id="distance">0.0</span> m
+        </div>
+    </div>
 
-<div>
-<div class="label">TIEMPO</div>
-<div class="big"><span id="time">0</span> s</div>
-</div>
+    <div>
+        <div class="label">TIEMPO</div>
+        <div class="big">
+            <span id="time">0</span> s
+        </div>
+    </div>
 
-<div>
-<div class="label">PARADAS</div>
-<div class="big" id="stopCount">0</div>
-</div>
+    <div>
+        <div class="label">PARADAS</div>
+        <div class="big" id="stopCount">
+            0
+        </div>
+    </div>
 
-<div>
-<div class="label">TIEMPO EN PARADAS</div>
-<div class="big"><span id="stoppedTime">0</span> s</div>
-</div>
+    <div>
+        <div class="label">TIEMPO DETENIDO</div>
+        <div class="big">
+            <span id="stoppedTime">0</span> s
+        </div>
+    </div>
 
 </div>
 
 <hr>
 
 <div class="note">
-Antes de iniciar, colocá físicamente el carrito en A y apuntando hacia B.
-Ese será nuestro origen y orientación inicial.
+Para comenzar la prueba, volvé físicamente al
+<strong>punto A</strong>, colocá el carrito mirando exactamente
+hacia el <strong>punto B</strong> y recién ahí presioná
+INICIAR RECORRIDO.
 </div>
 
 </div>
 
 
-<button id="startRoute" class="green" disabled>
-▶ INICIAR RECORRIDO
+<button
+    id="startRoute"
+    class="green"
+    disabled
+>
+    ▶ INICIAR RECORRIDO
 </button>
 
-<button id="markPointButton" class="teal" disabled>
-📍 MARCAR PUNTO CONOCIDO
+<button
+    id="markPointButton"
+    class="teal"
+    disabled
+>
+    📍 MARCAR PUNTO CONOCIDO
 </button>
 
-<button id="stopRoute" class="red" disabled>
-■ FINALIZAR RECORRIDO
+<button
+    id="stopRoute"
+    class="red"
+    disabled
+>
+    ■ FINALIZAR RECORRIDO
 </button>
 
-<button id="resetRoute" class="gray">
-↻ REINICIAR RECORRIDO
+<button
+    id="resetRoute"
+    class="gray"
+>
+    ↻ REINICIAR RECORRIDO
 </button>
 
-<button id="downloadCSV" class="purple" disabled>
-DESCARGAR CSV
+<button
+    id="downloadCSV"
+    class="purple"
+    disabled
+>
+    DESCARGAR CSV
 </button>
 
 
 <div class="card">
 
-<h2>Paradas inteligentes</h2>
+<h2>Paradas detectadas</h2>
 
 <div class="note">
-Una parada se inicia después de 3 segundos prácticamente detenido.
-Después de eso, movimientos pequeños no la terminan.
-La parada continúa mientras el carrito permanezca dentro de
-<strong>2 metros del punto inicial de esa parada</strong>.
-</div>
-
-<div id="activeStopInfo" class="box-wait">
-Sin parada activa.
+Se registra automáticamente una parada cuando el carrito
+permanece prácticamente inmóvil durante al menos
+3 segundos.
 </div>
 
 <div id="stopList">
-<div class="note">Todavía no hay paradas.</div>
+    <div class="note">
+        Todavía no hay paradas.
+    </div>
 </div>
 
 </div>
@@ -296,30 +445,8 @@ Sin parada activa.
 
 <script>
 
-/* ============================================================
-   CONFIGURACIÓN
-============================================================ */
-
-const MOVEMENT_THRESHOLD = 0.055;
-
-/*
-   Una parada se confirma tras 3 segundos.
-*/
-const STOP_CONFIRM_SECONDS = 3;
-
-/*
-   CLAVE V0.5:
-   dentro de este radio sigue siendo la MISMA parada,
-   aunque el acelerómetro detecte movimiento.
-*/
-const STOP_ZONE_RADIUS_METERS = 2.0;
-
-
-/* ============================================================
-   ESTADO
-============================================================ */
-
 let sensorsActive = false;
+
 let calibrating = false;
 let recording = false;
 
@@ -327,10 +454,10 @@ let headingSmooth = null;
 let routeStartHeading = null;
 
 let lastMotionTime = null;
+
 let filteredEnergy = 0;
 
 let calibrationEnergy = 0;
-let calibrationRuns = [];
 let calibrationFactor = null;
 
 let totalDistance = 0;
@@ -347,13 +474,14 @@ let sampleCounter = 0;
 let frequencyStart = performance.now();
 
 
-/* ============================================================
+/* =========================
    PLANO
-============================================================ */
+========================= */
 
 const planImage = new Image();
 
 let planLoaded = false;
+
 let mapSetupMode = false;
 
 let mapPointA = null;
@@ -366,98 +494,112 @@ let currentMapX = null;
 let currentMapY = null;
 
 
-/* ============================================================
-   PARADAS V0.5
-============================================================ */
+/* =========================
+   PARADAS
+========================= */
 
-/*
-stopCandidate:
-todavía no sabemos si será parada real.
+const STOP_MIN_SECONDS = 3;
 
-activeStop:
-ya fue confirmada como parada.
-Mientras permanezca dentro de 2 m,
-continúa siendo la misma.
-*/
-
-let stopCandidate = null;
-let activeStop = null;
+let stopCandidateStart = null;
+let stopCandidatePosition = null;
 
 let stops = [];
+
 let totalStoppedSeconds = 0;
 
 let manualMarkers = [];
 
 
-/* ============================================================
+/* =========================
+   MOVIMIENTO
+========================= */
+
+const MOVEMENT_THRESHOLD = 0.055;
+
+
+/* =========================
    DOM
-============================================================ */
+========================= */
 
-const statusEl = document.getElementById("status");
+const statusEl =
+    document.getElementById("status");
 
-const headingEl = document.getElementById("heading");
-const movementEl = document.getElementById("movementStatus");
-const energyEl = document.getElementById("motionEnergy");
-const frequencyEl = document.getElementById("frequency");
+const headingEl =
+    document.getElementById("heading");
 
-const distanceEl = document.getElementById("distance");
-const timeEl = document.getElementById("time");
+const movementEl =
+    document.getElementById("movementStatus");
 
-const stopCountEl = document.getElementById("stopCount");
-const stoppedTimeEl = document.getElementById("stoppedTime");
+const energyEl =
+    document.getElementById("motionEnergy");
 
-const stopListEl = document.getElementById("stopList");
-const activeStopInfo = document.getElementById("activeStopInfo");
+const frequencyEl =
+    document.getElementById("frequency");
 
-const canvas = document.getElementById("mapCanvas");
-const ctx = canvas.getContext("2d");
+const distanceEl =
+    document.getElementById("distance");
 
-const canvasHelp = document.getElementById("canvasHelp");
-const mapResult = document.getElementById("mapResult");
+const timeEl =
+    document.getElementById("time");
+
+const stopCountEl =
+    document.getElementById("stopCount");
+
+const stoppedTimeEl =
+    document.getElementById("stoppedTime");
+
+const stopListEl =
+    document.getElementById("stopList");
+
+const canvas =
+    document.getElementById("mapCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const canvasHelp =
+    document.getElementById("canvasHelp");
+
+const mapResult =
+    document.getElementById("mapResult");
 
 const calibrationResult =
-document.getElementById("calibrationResult");
-
-const calibrationList =
-document.getElementById("calibrationList");
+    document.getElementById("calibrationResult");
 
 const sensorButton =
-document.getElementById("sensorButton");
+    document.getElementById("sensorButton");
 
 const mapSetupButton =
-document.getElementById("mapSetupButton");
+    document.getElementById("mapSetupButton");
 
 const clearMapButton =
-document.getElementById("clearMapButton");
+    document.getElementById("clearMapButton");
 
 const startCalibration =
-document.getElementById("startCalibration");
+    document.getElementById("startCalibration");
 
 const stopCalibration =
-document.getElementById("stopCalibration");
-
-const clearCalibration =
-document.getElementById("clearCalibration");
+    document.getElementById("stopCalibration");
 
 const startRoute =
-document.getElementById("startRoute");
+    document.getElementById("startRoute");
 
 const stopRoute =
-document.getElementById("stopRoute");
+    document.getElementById("stopRoute");
 
 const markPointButton =
-document.getElementById("markPointButton");
+    document.getElementById("markPointButton");
 
 const resetRoute =
-document.getElementById("resetRoute");
+    document.getElementById("resetRoute");
 
 const downloadCSV =
-document.getElementById("downloadCSV");
+    document.getElementById("downloadCSV");
 
 
-/* ============================================================
-   PLANO
-============================================================ */
+/* =========================
+   CARGAR PLANO
+========================= */
 
 planImage.onload = function(){
 
@@ -477,64 +619,60 @@ planImage.onload = function(){
             targetWidth * ratio
         );
 
-    redrawEverything();
+    drawBaseMap();
 
     canvasHelp.textContent =
-        "Plano cargado. Marcá A y B.";
+        "Plano cargado. Marcá A y B para establecer la escala.";
+
 };
 
 planImage.onerror = function(){
 
     canvasHelp.textContent =
-        "ERROR: falta layout-gran-union.png en GitHub.";
+        "ERROR: no se encontró layout-gran-union.png en GitHub.";
+
 };
 
 planImage.src =
-    "layout-gran-union.png?v=5";
+    "layout-gran-union.png?v=4";
 
 
-function redrawEverything(){
+function drawBaseMap(){
 
     if(!planLoaded) return;
 
     ctx.clearRect(
-        0,0,
+        0,
+        0,
         canvas.width,
         canvas.height
     );
 
     ctx.drawImage(
         planImage,
-        0,0,
+        0,
+        0,
         canvas.width,
         canvas.height
     );
 
-
     if(mapPointA){
-
-        drawMapPoint(
+        drawMapCalibrationPoint(
             mapPointA,
             "A",
             "#dc3545"
         );
     }
 
-
     if(mapPointB){
-
-        drawMapPoint(
+        drawMapCalibrationPoint(
             mapPointB,
             "B",
             "#007aff"
         );
     }
 
-
-    if(
-        mapPointA &&
-        mapPointB
-    ){
+    if(mapPointA && mapPointB){
 
         ctx.strokeStyle =
             "#007aff";
@@ -555,54 +693,10 @@ function redrawEverything(){
 
         ctx.stroke();
     }
-
-
-    /*
-       REDIBUJAR RECORRIDO COMPLETO
-    */
-
-    if(routeData.length > 1){
-
-        ctx.strokeStyle =
-            "#15965f";
-
-        ctx.lineWidth = 9;
-
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            Number(routeData[0].canvas_x),
-            Number(routeData[0].canvas_y)
-        );
-
-        for(
-            let i=1;
-            i<routeData.length;
-            i++
-        ){
-
-            ctx.lineTo(
-                Number(routeData[i].canvas_x),
-                Number(routeData[i].canvas_y)
-            );
-        }
-
-        ctx.stroke();
-    }
-
-
-    stops.forEach(drawStop);
-
-    manualMarkers.forEach(
-        drawManualMarker
-    );
 }
 
 
-function drawMapPoint(
+function drawMapCalibrationPoint(
     point,
     label,
     color
@@ -617,40 +711,54 @@ function drawMapPoint(
         point.y,
         11,
         0,
-        Math.PI*2
+        Math.PI * 2
     );
 
     ctx.fill();
 
 
-    ctx.fillStyle="#111";
-    ctx.font="bold 24px sans-serif";
+    ctx.fillStyle =
+        "#111";
+
+    ctx.font =
+        "bold 24px sans-serif";
 
     ctx.fillText(
         label,
-        point.x+15,
-        point.y-12
+        point.x + 15,
+        point.y - 12
     );
 }
 
+
+/* =========================
+   TAP EN EL PLANO
+========================= */
 
 function getCanvasPosition(event){
 
     const rect =
         canvas.getBoundingClientRect();
 
+    const scaleX =
+        canvas.width /
+        rect.width;
+
+    const scaleY =
+        canvas.height /
+        rect.height;
+
     return {
 
         x:
-        (event.clientX-rect.left) *
-        canvas.width /
-        rect.width,
+            (event.clientX -
+             rect.left) *
+            scaleX,
 
         y:
-        (event.clientY-rect.top) *
-        canvas.height /
-        rect.height
-
+            (event.clientY -
+             rect.top) *
+            scaleY
     };
 }
 
@@ -663,23 +771,20 @@ canvas.addEventListener(
             return;
         }
 
-
         const p =
             getCanvasPosition(event);
-
 
         if(!mapPointA){
 
             mapPointA = p;
 
             mapResult.textContent =
-                "A marcado. Ahora tocá B.";
+                "Punto A marcado. Ahora tocá el punto B, exactamente 5 m más adelante.";
 
-            redrawEverything();
+            drawBaseMap();
 
             return;
         }
-
 
         if(!mapPointB){
 
@@ -689,7 +794,7 @@ canvas.addEventListener(
 
             mapSetupMode = false;
 
-            redrawEverything();
+            drawBaseMap();
         }
     }
 );
@@ -704,7 +809,6 @@ function finishMapCalibration(){
             ).value
         );
 
-
     const dx =
         mapPointB.x -
         mapPointA.x;
@@ -713,25 +817,27 @@ function finishMapCalibration(){
         mapPointB.y -
         mapPointA.y;
 
-
     const pixelDistance =
         Math.sqrt(
             dx*dx +
             dy*dy
         );
 
-
     mapPixelsPerMeter =
         pixelDistance /
         knownDistance;
 
+    /*
+      Canvas usa Y hacia abajo.
+      atan2 funciona perfecto
+      para nuestro sistema visual.
+    */
 
     mapBaseAngle =
         Math.atan2(
             dy,
             dx
         );
-
 
     mapResult.innerHTML =
         "✓ PLANO CALIBRADO<br>" +
@@ -742,10 +848,8 @@ function finishMapCalibration(){
         mapPixelsPerMeter.toFixed(2) +
         " px por metro";
 
-
     mapResult.className =
         "box-ok";
-
 
     checkReadyForRoute();
 }
@@ -755,6 +859,13 @@ mapSetupButton.addEventListener(
     "click",
     function(){
 
+        if(!planLoaded){
+            alert(
+                "El plano todavía no está cargado."
+            );
+            return;
+        }
+
         mapPointA = null;
         mapPointB = null;
 
@@ -763,13 +874,16 @@ mapSetupButton.addEventListener(
 
         mapSetupMode = true;
 
-        redrawEverything();
+        drawBaseMap();
 
         mapResult.textContent =
-            "Tocá A y luego B.";
+            "Tocá en el plano el punto A: inicio exacto del tramo de 5 metros.";
 
         mapResult.className =
             "box-wait";
+
+        canvasHelp.textContent =
+            "MODO CONFIGURACIÓN: tocá primero A y luego B.";
 
         startRoute.disabled = true;
     }
@@ -789,29 +903,31 @@ clearMapButton.addEventListener(
         mapSetupMode = false;
 
         mapResult.textContent =
-            "Pendiente: marcar A y B.";
+            "Pendiente: marcar punto A y punto B.";
 
         mapResult.className =
             "box-wait";
 
-        redrawEverything();
+        drawBaseMap();
 
         checkReadyForRoute();
     }
 );
 
 
-/* ============================================================
+/* =========================
    SENSORES
-============================================================ */
+========================= */
 
 async function activateSensors(){
 
     try{
 
         if(
-            typeof DeviceMotionEvent !== "undefined" &&
-            typeof DeviceMotionEvent.requestPermission === "function"
+            typeof DeviceMotionEvent !==
+            "undefined" &&
+            typeof DeviceMotionEvent.requestPermission ===
+            "function"
         ){
 
             const r =
@@ -826,10 +942,11 @@ async function activateSensors(){
             }
         }
 
-
         if(
-            typeof DeviceOrientationEvent !== "undefined" &&
-            typeof DeviceOrientationEvent.requestPermission === "function"
+            typeof DeviceOrientationEvent !==
+            "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission ===
+            "function"
         ){
 
             const r =
@@ -844,7 +961,6 @@ async function activateSensors(){
             }
         }
 
-
         window.addEventListener(
             "devicemotion",
             motionHandler
@@ -855,9 +971,7 @@ async function activateSensors(){
             orientationHandler
         );
 
-
         sensorsActive = true;
-
 
         statusEl.textContent =
             "● Sensores activos";
@@ -865,12 +979,11 @@ async function activateSensors(){
         statusEl.className =
             "status ok";
 
-
-        sensorButton.disabled = true;
+        sensorButton.disabled =
+            true;
 
         sensorButton.textContent =
             "SENSORES ACTIVADOS";
-
 
         startCalibration.disabled =
             false;
@@ -879,7 +992,7 @@ async function activateSensors(){
     catch(error){
 
         statusEl.textContent =
-            "● "+error.message;
+            "● " + error.message;
 
         statusEl.className =
             "status error";
@@ -897,7 +1010,6 @@ function orientationHandler(event){
 
     let h;
 
-
     if(
         event.webkitCompassHeading !==
         undefined
@@ -910,13 +1022,14 @@ function orientationHandler(event){
     else{
 
         h =
-            360-event.alpha;
+            360 -
+            event.alpha;
     }
 
 
     if(
-        h===null ||
-        h===undefined ||
+        h === null ||
+        h === undefined ||
         isNaN(h)
     ){
         return;
@@ -924,26 +1037,33 @@ function orientationHandler(event){
 
 
     h =
-        (h+360)%360;
+        (h + 360) %
+        360;
 
 
     if(
-        headingSmooth===null
+        headingSmooth === null
     ){
 
-        headingSmooth=h;
+        headingSmooth = h;
 
     }
     else{
 
         let diff =
-            ((h-headingSmooth+540)%360)-180;
+            ((h -
+              headingSmooth +
+              540) %
+             360) -
+            180;
 
         headingSmooth +=
-            diff*0.18;
+            diff * 0.18;
 
         headingSmooth =
-            (headingSmooth+360)%360;
+            (headingSmooth +
+             360) %
+            360;
     }
 
 
@@ -952,21 +1072,22 @@ function orientationHandler(event){
 }
 
 
-/* ============================================================
+/* =========================
    MOVIMIENTO
-============================================================ */
+========================= */
 
 function motionHandler(event){
 
     const now =
         performance.now();
 
-
     sampleCounter++;
 
 
     if(
-        now-frequencyStart>=1000
+        now -
+        frequencyStart >=
+        1000
     ){
 
         frequencyEl.textContent =
@@ -978,21 +1099,27 @@ function motionHandler(event){
     }
 
 
-    if(lastMotionTime===null){
+    if(
+        lastMotionTime === null
+    ){
 
-        lastMotionTime=now;
+        lastMotionTime = now;
+
         return;
     }
 
 
     let dt =
-        (now-lastMotionTime)/1000;
+        (now -
+         lastMotionTime) /
+        1000;
 
-    lastMotionTime=now;
+    lastMotionTime =
+        now;
 
 
-    if(dt>0.1){
-        dt=0.1;
+    if(dt > 0.1){
+        dt = 0.1;
     }
 
 
@@ -1004,22 +1131,29 @@ function motionHandler(event){
     }
 
 
-    const ax=a.x||0;
-    const ay=a.y||0;
-    const az=a.z||0;
+    const ax =
+        a.x || 0;
+
+    const ay =
+        a.y || 0;
+
+    const az =
+        a.z || 0;
 
 
-    const magnitude =
+    let magnitude =
         Math.sqrt(
-            ax*ax+
-            ay*ay+
+            ax*ax +
+            ay*ay +
             az*az
         );
 
 
     filteredEnergy =
-        filteredEnergy*0.75 +
-        magnitude*0.25;
+        filteredEnergy *
+        0.75 +
+        magnitude *
+        0.25;
 
 
     let effectiveEnergy =
@@ -1027,16 +1161,21 @@ function motionHandler(event){
         MOVEMENT_THRESHOLD;
 
 
-    if(effectiveEnergy<0){
-        effectiveEnergy=0;
+    if(
+        effectiveEnergy < 0
+    ){
+        effectiveEnergy = 0;
     }
 
 
     energyEl.textContent =
-        effectiveEnergy.toFixed(3);
+        effectiveEnergy
+        .toFixed(3);
 
 
-    if(effectiveEnergy>0){
+    if(
+        effectiveEnergy > 0
+    ){
 
         movementEl.textContent =
             "MOVIÉNDOSE";
@@ -1055,22 +1194,27 @@ function motionHandler(event){
     }
 
 
-    /* CALIBRACIÓN */
+    /*
+       CALIBRACIÓN FÍSICA
+    */
 
     if(calibrating){
 
         calibrationEnergy +=
-            effectiveEnergy*dt;
+            effectiveEnergy *
+            dt;
     }
 
 
-    /* RECORRIDO */
+    /*
+       RECORRIDO
+    */
 
     if(
         recording &&
-        calibrationFactor!==null &&
-        mapPixelsPerMeter!==null &&
-        routeStartHeading!==null
+        calibrationFactor !== null &&
+        mapPixelsPerMeter !== null &&
+        routeStartHeading !== null
     ){
 
         let distanceStep =
@@ -1079,30 +1223,40 @@ function motionHandler(event){
             calibrationFactor;
 
 
-        if(distanceStep>0.20){
-            distanceStep=0.20;
+        if(
+            distanceStep >
+            0.20
+        ){
+            distanceStep = 0.20;
         }
 
 
         let headingDifference =
-            ((headingSmooth-
-            routeStartHeading+
-            540)%360)-180;
+            ((headingSmooth -
+              routeStartHeading +
+              540) %
+             360) -
+            180;
 
 
         let mapAngle =
             mapBaseAngle +
             headingDifference *
-            Math.PI/180;
+            Math.PI /
+            180;
 
 
         let dxMeters =
-            Math.cos(mapAngle) *
+            Math.cos(
+                mapAngle
+            ) *
             distanceStep;
 
 
         let dyMeters =
-            Math.sin(mapAngle) *
+            Math.sin(
+                mapAngle
+            ) *
             distanceStep;
 
 
@@ -1134,14 +1288,18 @@ function motionHandler(event){
 
 
         const elapsed =
-            (now-routeStartTime)/1000;
+            (now -
+             routeStartTime) /
+            1000;
 
 
         distanceEl.textContent =
-            totalDistance.toFixed(1);
+            totalDistance
+            .toFixed(1);
 
         timeEl.textContent =
-            elapsed.toFixed(0);
+            elapsed
+            .toFixed(0);
 
 
         routeData.push({
@@ -1195,44 +1353,77 @@ function motionHandler(event){
         );
 
 
-        updateSmartStop(
+        detectStop(
             effectiveEnergy,
-            elapsed,
-            now
+            now,
+            elapsed
         );
     }
 }
 
 
-/* ============================================================
-   CALIBRACIÓN ROBUSTA
-============================================================ */
+/* =========================
+   CALIBRACIÓN FÍSICA
+========================= */
 
 function startCalibrationFunction(){
 
-    calibrationEnergy=0;
+    const d =
+        Number(
+            document.getElementById(
+                "calibrationDistance"
+            ).value
+        );
 
-    calibrating=true;
+
+    if(
+        !d ||
+        d <= 0
+    ){
+
+        alert(
+            "Ingresá una distancia válida."
+        );
+
+        return;
+    }
+
+
+    calibrationEnergy = 0;
+
+    calibrating = true;
 
 
     calibrationResult.textContent =
-        "CALIBRANDO PASADA "+
-        (calibrationRuns.length+1)+
-        "...";
+        "CALIBRANDO... avanzá exactamente " +
+        d +
+        " metros.";
 
     calibrationResult.className =
         "box-wait";
 
 
-    startCalibration.disabled=true;
-    stopCalibration.disabled=false;
-    startRoute.disabled=true;
+    startCalibration.disabled =
+        true;
+
+    stopCalibration.disabled =
+        false;
+
+    startRoute.disabled =
+        true;
+
+
+    statusEl.textContent =
+        "● CALIBRANDO";
+
+    statusEl.className =
+        "status waiting";
 }
 
 
 function stopCalibrationFunction(){
 
-    calibrating=false;
+    calibrating = false;
 
 
     const realDistance =
@@ -1243,82 +1434,35 @@ function stopCalibrationFunction(){
         );
 
 
-    if(calibrationEnergy<=0.001){
+    if(
+        calibrationEnergy <=
+        0.001
+    ){
 
-        alert(
-            "Movimiento insuficiente."
-        );
+        calibrationResult.textContent =
+            "No se detectó suficiente movimiento. Repetí la calibración.";
 
-        startCalibration.disabled=false;
-        stopCalibration.disabled=true;
+        startCalibration.disabled =
+            false;
+
+        stopCalibration.disabled =
+            true;
 
         return;
     }
 
 
-    const factor =
+    calibrationFactor =
         realDistance /
         calibrationEnergy;
 
 
-    calibrationRuns.push(
-        factor
-    );
-
-
-    calibrationFactor =
-        median(
-            calibrationRuns
-        );
-
-
-    refreshCalibrationDisplay();
-
-
-    startCalibration.disabled=false;
-    stopCalibration.disabled=true;
-
-
-    checkReadyForRoute();
-}
-
-
-function median(array){
-
-    const a =
-        [...array]
-        .sort(
-            (x,y)=>x-y
-        );
-
-
-    const middle =
-        Math.floor(
-            a.length/2
-        );
-
-
-    if(a.length%2){
-
-        return a[middle];
-
-    }
-
-
-    return (
-        a[middle-1]+
-        a[middle]
-    )/2;
-}
-
-
-function refreshCalibrationDisplay(){
-
     calibrationResult.innerHTML =
-        "✓ CALIBRADO<br>"+
-        "Pasadas: "+
-        calibrationRuns.length+
-        "<br>Factor adoptado: "+
+        "✓ CALIBRADO<br>" +
+        "Distancia: " +
+        realDistance.toFixed(1) +
+        " m<br>" +
+        "Factor: " +
         calibrationFactor.toFixed(3);
 
 
@@ -1326,25 +1470,21 @@ function refreshCalibrationDisplay(){
         "box-ok";
 
 
-    let html="";
+    startCalibration.disabled =
+        false;
+
+    stopCalibration.disabled =
+        true;
 
 
-    calibrationRuns.forEach(
-        function(f,i){
+    statusEl.textContent =
+        "● Calibración completada";
 
-            html +=
-                '<div class="cal-row">'+
-                'Pasada '+
-                (i+1)+
-                ': factor <strong>'+
-                f.toFixed(3)+
-                '</strong></div>';
-        }
-    );
+    statusEl.className =
+        "status ok";
 
 
-    calibrationList.innerHTML =
-        html;
+    checkReadyForRoute();
 }
 
 
@@ -1359,45 +1499,34 @@ stopCalibration.addEventListener(
 );
 
 
-clearCalibration.addEventListener(
-    "click",
-    function(){
-
-        calibrationRuns=[];
-        calibrationFactor=null;
-
-        calibrationList.innerHTML="";
-
-        calibrationResult.textContent =
-            "Todavía no calibrado.";
-
-        calibrationResult.className =
-            "box-wait";
-
-        checkReadyForRoute();
-    }
-);
-
-
-/* ============================================================
+/* =========================
    READY
-============================================================ */
+========================= */
 
 function checkReadyForRoute(){
 
-    startRoute.disabled =
-        !(
-            sensorsActive &&
-            calibrationFactor!==null &&
-            mapPixelsPerMeter!==null &&
-            !recording
-        );
+    if(
+        calibrationFactor !== null &&
+        mapPixelsPerMeter !== null &&
+        sensorsActive &&
+        !recording
+    ){
+
+        startRoute.disabled =
+            false;
+
+    }
+    else{
+
+        startRoute.disabled =
+            true;
+    }
 }
 
 
-/* ============================================================
+/* =========================
    RECORRIDO
-============================================================ */
+========================= */
 
 function startRouteFunction(){
 
@@ -1405,9 +1534,32 @@ function startRouteFunction(){
         !mapPointA ||
         !mapPointB
     ){
+
+        alert(
+            "Primero configurá A y B en el plano."
+        );
+
         return;
     }
 
+
+    if(
+        headingSmooth === null
+    ){
+
+        alert(
+            "Todavía no tenemos orientación."
+        );
+
+        return;
+    }
+
+
+    /*
+       MUY IMPORTANTE:
+       El usuario debe estar físicamente
+       en A y apuntando hacia B.
+    */
 
     resetRouteData();
 
@@ -1427,17 +1579,26 @@ function startRouteFunction(){
         performance.now();
 
 
-    recording=true;
+    recording = true;
 
 
-    startRoute.disabled=true;
-    stopRoute.disabled=false;
-    markPointButton.disabled=false;
+    startRoute.disabled =
+        true;
 
-    startCalibration.disabled=true;
-    mapSetupButton.disabled=true;
+    stopRoute.disabled =
+        false;
 
-    downloadCSV.disabled=true;
+    markPointButton.disabled =
+        false;
+
+    startCalibration.disabled =
+        true;
+
+    mapSetupButton.disabled =
+        true;
+
+    downloadCSV.disabled =
+        true;
 
 
     statusEl.textContent =
@@ -1445,41 +1606,59 @@ function startRouteFunction(){
 
     statusEl.className =
         "status ok";
+
+
+    drawStartPoint();
 }
 
 
 function stopRouteFunction(){
 
-    if(activeStop){
-        finishActiveStop();
+    if(
+        stopCandidateStart !== null
+    ){
+
+        closeStopCandidate(
+            performance.now()
+        );
     }
 
 
-    recording=false;
+    recording = false;
 
 
-    stopRoute.disabled=true;
-    markPointButton.disabled=true;
+    startRoute.disabled =
+        false;
 
-    startCalibration.disabled=false;
-    mapSetupButton.disabled=false;
+    stopRoute.disabled =
+        true;
+
+    markPointButton.disabled =
+        true;
+
+    startCalibration.disabled =
+        false;
+
+    mapSetupButton.disabled =
+        false;
 
 
-    if(routeData.length>0){
-        downloadCSV.disabled=false;
+    if(
+        routeData.length > 0
+    ){
+
+        downloadCSV.disabled =
+            false;
     }
 
 
     statusEl.textContent =
-        "● Recorrido finalizado — "+
-        totalDistance.toFixed(1)+
+        "● Recorrido finalizado — " +
+        totalDistance.toFixed(1) +
         " m";
 
     statusEl.className =
         "status waiting";
-
-
-    checkReadyForRoute();
 }
 
 
@@ -1494,322 +1673,254 @@ stopRoute.addEventListener(
 );
 
 
-/* ============================================================
-   DIBUJO
-============================================================ */
+/* =========================
+   DIBUJO RECORRIDO
+========================= */
+
+function drawStartPoint(){
+
+    ctx.fillStyle =
+        "#dc3545";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        currentMapX,
+        currentMapY,
+        9,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        "#111";
+
+    ctx.font =
+        "bold 20px sans-serif";
+
+    ctx.fillText(
+        "INICIO",
+        currentMapX + 13,
+        currentMapY - 10
+    );
+}
+
 
 function drawRouteSegment(
-    x1,y1,x2,y2
+    x1,
+    y1,
+    x2,
+    y2
 ){
 
     if(
-        x1===null ||
-        y1===null
+        x1 === null ||
+        y1 === null
     ){
         return;
     }
 
 
-    ctx.strokeStyle="#15965f";
-    ctx.lineWidth=9;
-    ctx.lineCap="round";
-    ctx.lineJoin="round";
+    ctx.strokeStyle =
+        "#15965f";
+
+    ctx.lineWidth =
+        9;
+
+    ctx.lineCap =
+        "round";
+
+    ctx.lineJoin =
+        "round";
+
 
     ctx.beginPath();
 
-    ctx.moveTo(x1,y1);
-    ctx.lineTo(x2,y2);
+    ctx.moveTo(
+        x1,
+        y1
+    );
+
+    ctx.lineTo(
+        x2,
+        y2
+    );
 
     ctx.stroke();
 }
 
 
-/* ============================================================
-   PARADA INTELIGENTE V0.5
-============================================================ */
+/* =========================
+   PARADAS
+========================= */
 
-function updateSmartStop(
+function detectStop(
     effectiveEnergy,
-    elapsed,
-    now
+    now,
+    elapsed
 ){
 
-    /*
-       1) TODAVÍA NO HAY PARADA ACTIVA
-    */
-
-    if(!activeStop){
-
-        if(effectiveEnergy===0){
-
-            if(!stopCandidate){
-
-                stopCandidate = {
-
-                    startNow:now,
-
-                    startElapsed:elapsed,
-
-                    startDistance:
-                        totalDistance,
-
-                    startXMeters:
-                        xMeters,
-
-                    startYMeters:
-                        yMeters,
-
-                    mapX:
-                        currentMapX,
-
-                    mapY:
-                        currentMapY
-
-                };
-
-            }
-            else{
-
-                const candidateDuration =
-                    (now-
-                    stopCandidate.startNow)/
-                    1000;
-
-
-                if(
-                    candidateDuration >=
-                    STOP_CONFIRM_SECONDS
-                ){
-
-                    /*
-                       CONFIRMAMOS PARADA.
-                    */
-
-                    activeStop = {
-
-                        number:
-                            stops.length+1,
-
-                        startElapsed:
-                            stopCandidate
-                            .startElapsed,
-
-                        startDistance:
-                            stopCandidate
-                            .startDistance,
-
-                        startXMeters:
-                            stopCandidate
-                            .startXMeters,
-
-                        startYMeters:
-                            stopCandidate
-                            .startYMeters,
-
-                        mapX:
-                            stopCandidate.mapX,
-
-                        mapY:
-                            stopCandidate.mapY
-
-                    };
-
-
-                    stopCandidate=null;
-
-
-                    activeStopInfo.innerHTML =
-                        "🛑 PARADA "+
-                        activeStop.number+
-                        " ACTIVA<br>"+
-                        "Radio permitido: "+
-                        STOP_ZONE_RADIUS_METERS+
-                        " m";
-
-                    activeStopInfo.className =
-                        "box-ok";
-                }
-            }
-
-        }
-        else{
-
-            /*
-               Si todavía era sólo candidato
-               y empieza a caminar,
-               cancelamos.
-            */
-
-            stopCandidate=null;
-        }
-
-        return;
-    }
-
-
-    /*
-       2) YA HAY PARADA ACTIVA.
-
-       Acá NO importa si el acelerómetro
-       detecta movimiento.
-
-       Sólo preguntamos:
-       ¿cuánto se alejó realmente
-       del punto donde comenzó la parada?
-    */
-
-
-    const dx =
-        xMeters -
-        activeStop.startXMeters;
-
-    const dy =
-        yMeters -
-        activeStop.startYMeters;
-
-
-    const displacement =
-        Math.sqrt(
-            dx*dx+
-            dy*dy
-        );
-
-
-    activeStopInfo.innerHTML =
-        "🛑 PARADA "+
-        activeStop.number+
-        " ACTIVA<br>"+
-        "Desplazamiento dentro de zona: "+
-        displacement.toFixed(2)+
-        " m / "+
-        STOP_ZONE_RADIUS_METERS+
-        " m";
-
-
-    /*
-       RECIÉN TERMINA cuando supera 2 m.
-    */
-
     if(
-        displacement >
-        STOP_ZONE_RADIUS_METERS
+        effectiveEnergy === 0
     ){
 
-        finishActiveStop();
+        if(
+            stopCandidateStart === null
+        ){
+
+            stopCandidateStart =
+                now;
+
+            stopCandidatePosition = {
+
+                x:
+                    currentMapX,
+
+                y:
+                    currentMapY,
+
+                elapsed:
+                    elapsed,
+
+                distance:
+                    totalDistance
+            };
+        }
+
+    }
+    else{
+
+        if(
+            stopCandidateStart !== null
+        ){
+
+            closeStopCandidate(
+                now
+            );
+        }
     }
 }
 
 
-function finishActiveStop(){
+function closeStopCandidate(now){
 
-    if(!activeStop){
+    if(
+        stopCandidateStart === null
+    ){
         return;
     }
 
 
-    const elapsedNow =
-        (performance.now()-
-        routeStartTime)/
+    const duration =
+        (now -
+         stopCandidateStart) /
         1000;
 
 
-    const duration =
-        elapsedNow -
-        activeStop.startElapsed;
+    if(
+        duration >=
+        STOP_MIN_SECONDS
+    ){
+
+        const stop = {
+
+            number:
+                stops.length + 1,
+
+            duration:
+                duration,
+
+            x:
+                stopCandidatePosition.x,
+
+            y:
+                stopCandidatePosition.y,
+
+            elapsed:
+                stopCandidatePosition.elapsed,
+
+            distance:
+                stopCandidatePosition.distance
+        };
 
 
-    const stop = {
-
-        number:
-            activeStop.number,
-
-        duration:
-            duration,
-
-        elapsed:
-            activeStop.startElapsed,
-
-        distance:
-            activeStop.startDistance,
-
-        x:
-            activeStop.mapX,
-
-        y:
-            activeStop.mapY
-
-    };
+        stops.push(stop);
 
 
-    stops.push(stop);
+        totalStoppedSeconds +=
+            duration;
 
 
-    totalStoppedSeconds +=
-        duration;
+        eventData.push({
+
+            time:
+                stop.elapsed.toFixed(3),
+
+            heading:"",
+            ax:"",
+            ay:"",
+            az:"",
+            energy:"",
+            distance_step:"",
+            total_distance:
+                stop.distance.toFixed(3),
+
+            x_m:"",
+            y_m:"",
+
+            canvas_x:
+                stop.x.toFixed(2),
+
+            canvas_y:
+                stop.y.toFixed(2),
+
+            event:
+                "STOP_" +
+                stop.number,
+
+            event_duration:
+                duration.toFixed(2)
+        });
 
 
-    eventData.push({
-
-        time:
-            stop.elapsed.toFixed(3),
-
-        heading:"",
-        ax:"",
-        ay:"",
-        az:"",
-        energy:"",
-        distance_step:"",
-
-        total_distance:
-            stop.distance.toFixed(3),
-
-        x_m:"",
-        y_m:"",
-
-        canvas_x:
-            stop.x.toFixed(2),
-
-        canvas_y:
-            stop.y.toFixed(2),
-
-        event:
-            "STOP_"+
-            stop.number,
-
-        event_duration:
-            stop.duration.toFixed(2)
-
-    });
+        drawStop(
+            stop
+        );
 
 
-    drawStop(stop);
-
-    refreshStopList();
-
-
-    activeStop=null;
+        refreshStopList();
+    }
 
 
-    activeStopInfo.textContent =
-        "Sin parada activa.";
+    stopCandidateStart =
+        null;
 
-    activeStopInfo.className =
-        "box-wait";
+    stopCandidatePosition =
+        null;
 }
 
 
 function drawStop(stop){
 
+    /*
+       Cuanto más tiempo,
+       más grande el círculo.
+    */
+
     const radius =
         Math.min(
-            30,
-            10+
-            stop.duration*0.25
+            28,
+            9 +
+            stop.duration *
+            0.45
         );
 
 
     ctx.fillStyle =
-        "rgba(220,53,69,0.88)";
+        "rgba(220,53,69,0.85)";
 
 
     ctx.beginPath();
@@ -1825,11 +1936,16 @@ function drawStop(stop){
     ctx.fill();
 
 
-    ctx.fillStyle="white";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
+    ctx.fillStyle =
+        "white";
 
-    ctx.font=
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.font =
         "bold 18px sans-serif";
 
 
@@ -1840,17 +1956,26 @@ function drawStop(stop){
     );
 
 
-    ctx.textAlign="left";
-    ctx.textBaseline="alphabetic";
+    ctx.textAlign =
+        "left";
+
+    ctx.textBaseline =
+        "alphabetic";
 
 
-    ctx.fillStyle="#111";
-    ctx.font="bold 17px sans-serif";
+    ctx.fillStyle =
+        "#111";
+
+    ctx.font =
+        "bold 17px sans-serif";
 
 
     ctx.fillText(
-        stop.duration.toFixed(0)+"s",
-        stop.x+radius+5,
+        stop.duration.toFixed(0) +
+        "s",
+        stop.x +
+        radius +
+        5,
         stop.y
     );
 }
@@ -1863,10 +1988,13 @@ function refreshStopList(){
 
 
     stoppedTimeEl.textContent =
-        totalStoppedSeconds.toFixed(0);
+        totalStoppedSeconds
+        .toFixed(0);
 
 
-    if(stops.length===0){
+    if(
+        stops.length === 0
+    ){
 
         stopListEl.innerHTML =
             '<div class="note">Todavía no hay paradas.</div>';
@@ -1875,14 +2003,12 @@ function refreshStopList(){
     }
 
 
-    let html=
-
-    '<div class="stop-row stop-head">'+
-    '<div>#</div>'+
-    '<div>Momento</div>'+
-    '<div>Duración</div>'+
-    '<div>Dist.</div>'+
-    '</div>';
+    let html =
+        '<div class="stop-row stop-head">' +
+        '<div>#</div>' +
+        '<div>Momento</div>' +
+        '<div>Duración</div>' +
+        '</div>';
 
 
     stops.forEach(
@@ -1890,56 +2016,58 @@ function refreshStopList(){
 
             html +=
 
-            '<div class="stop-row">'+
+            '<div class="stop-row">' +
 
-            '<div>'+
-            '<span class="badge">'+
-            stop.number+
-            '</span>'+
-            '</div>'+
+            '<div>' +
+            '<span class="badge">' +
+            stop.number +
+            '</span>' +
+            '</div>' +
 
-            '<div>'+
+            '<div>' +
             secondsToClock(
                 stop.elapsed
-            )+
-            '</div>'+
+            ) +
+            '</div>' +
 
-            '<div><strong>'+
-            stop.duration.toFixed(1)+
-            ' s</strong></div>'+
-
-            '<div>'+
-            stop.distance.toFixed(1)+
-            ' m</div>'+
+            '<div><strong>' +
+            stop.duration.toFixed(1) +
+            ' s</strong></div>' +
 
             '</div>';
         }
     );
 
 
-    stopListEl.innerHTML=html;
+    stopListEl.innerHTML =
+        html;
 }
 
 
 function secondsToClock(sec){
 
-    const m=
-        Math.floor(sec/60);
+    const m =
+        Math.floor(
+            sec / 60
+        );
 
-    const s=
-        Math.floor(sec%60);
+    const s =
+        Math.floor(
+            sec % 60
+        );
 
     return (
-        m+":"+
+        m +
+        ":" +
         String(s)
         .padStart(2,"0")
     );
 }
 
 
-/* ============================================================
+/* =========================
    MARCADOR MANUAL
-============================================================ */
+========================= */
 
 markPointButton.addEventListener(
     "click",
@@ -1951,15 +2079,16 @@ markPointButton.addEventListener(
 
 
         const elapsed =
-            (performance.now()-
-            routeStartTime)/
+            (performance.now() -
+             routeStartTime) /
             1000;
 
 
         const marker = {
 
             number:
-                manualMarkers.length+1,
+                manualMarkers.length +
+                1,
 
             x:
                 currentMapX,
@@ -1975,7 +2104,9 @@ markPointButton.addEventListener(
         };
 
 
-        manualMarkers.push(marker);
+        manualMarkers.push(
+            marker
+        );
 
 
         eventData.push({
@@ -2008,19 +2139,21 @@ markPointButton.addEventListener(
                 currentMapY.toFixed(2),
 
             event:
-                "MARKER_"+
+                "MARKER_" +
                 marker.number,
 
             event_duration:""
         });
 
 
-        drawManualMarker(marker);
+        drawManualMarker(
+            marker
+        );
 
 
         statusEl.textContent =
-            "● M"+
-            marker.number+
+            "● Punto " +
+            marker.number +
             " marcado";
 
 
@@ -2042,7 +2175,8 @@ markPointButton.addEventListener(
 
 function drawManualMarker(marker){
 
-    ctx.fillStyle="#ff9500";
+    ctx.fillStyle =
+        "#ff9500";
 
     ctx.beginPath();
 
@@ -2057,64 +2191,63 @@ function drawManualMarker(marker){
     ctx.fill();
 
 
-    ctx.fillStyle="#111";
-    ctx.font="bold 18px sans-serif";
+    ctx.fillStyle =
+        "#111";
+
+    ctx.font =
+        "bold 18px sans-serif";
 
 
     ctx.fillText(
-        "M"+
+        "M" +
         marker.number,
-        marker.x+14,
-        marker.y-8
+        marker.x + 14,
+        marker.y - 8
     );
 }
 
 
-/* ============================================================
+/* =========================
    RESET
-============================================================ */
+========================= */
 
 function resetRouteData(){
 
-    routeData=[];
-    eventData=[];
+    routeData = [];
+    eventData = [];
 
-    stops=[];
-    manualMarkers=[];
+    stops = [];
+    manualMarkers = [];
 
-    totalStoppedSeconds=0;
+    totalStoppedSeconds = 0;
 
-    stopCandidate=null;
-    activeStop=null;
+    stopCandidateStart = null;
+    stopCandidatePosition = null;
 
-    totalDistance=0;
+    totalDistance = 0;
 
-    xMeters=0;
-    yMeters=0;
+    xMeters = 0;
+    yMeters = 0;
 
-    currentMapX=null;
-    currentMapY=null;
+    currentMapX = null;
+    currentMapY = null;
 
+    distanceEl.textContent =
+        "0.0";
 
-    distanceEl.textContent="0.0";
-    timeEl.textContent="0";
+    timeEl.textContent =
+        "0";
 
-    stopCountEl.textContent="0";
-    stoppedTimeEl.textContent="0";
+    stopCountEl.textContent =
+        "0";
 
+    stoppedTimeEl.textContent =
+        "0";
 
-    stopListEl.innerHTML=
+    stopListEl.innerHTML =
         '<div class="note">Todavía no hay paradas.</div>';
 
-
-    activeStopInfo.textContent=
-        "Sin parada activa.";
-
-    activeStopInfo.className=
-        "box-wait";
-
-
-    redrawEverything();
+    drawBaseMap();
 }
 
 
@@ -2122,24 +2255,30 @@ resetRoute.addEventListener(
     "click",
     function(){
 
-        recording=false;
+        recording = false;
 
         resetRouteData();
 
-        stopRoute.disabled=true;
-        markPointButton.disabled=true;
-        downloadCSV.disabled=true;
+        stopRoute.disabled =
+            true;
 
-        mapSetupButton.disabled=false;
+        markPointButton.disabled =
+            true;
 
-        startCalibration.disabled=
+        downloadCSV.disabled =
+            true;
+
+        mapSetupButton.disabled =
+            false;
+
+        startCalibration.disabled =
             !sensorsActive;
 
 
-        statusEl.textContent=
+        statusEl.textContent =
             "● Listo";
 
-        statusEl.className=
+        statusEl.className =
             "status waiting";
 
 
@@ -2148,15 +2287,15 @@ resetRoute.addEventListener(
 );
 
 
-/* ============================================================
+/* =========================
    CSV
-============================================================ */
+========================= */
 
 downloadCSV.addEventListener(
     "click",
     function(){
 
-        const allRows=
+        let allRows =
             routeData.concat(
                 eventData
             );
@@ -2166,19 +2305,21 @@ downloadCSV.addEventListener(
             function(a,b){
 
                 return (
-                    Number(a.time)-
+                    Number(a.time) -
                     Number(b.time)
                 );
             }
         );
 
 
-        if(allRows.length===0){
+        if(
+            allRows.length === 0
+        ){
             return;
         }
 
 
-        const headers=[
+        const headers = [
 
             "time",
             "heading",
@@ -2194,12 +2335,11 @@ downloadCSV.addEventListener(
             "canvas_y",
             "event",
             "event_duration"
-
         ];
 
 
-        let csv=
-            headers.join(",")+
+        let csv =
+            headers.join(",") +
             "\n";
 
 
@@ -2217,13 +2357,13 @@ downloadCSV.addEventListener(
                                 ""
                             );
                         }
-                    ).join(",")+
+                    ).join(",") +
                     "\n";
             }
         );
 
 
-        const blob=
+        const blob =
             new Blob(
                 [csv],
                 {
@@ -2233,18 +2373,23 @@ downloadCSV.addEventListener(
             );
 
 
-        const url=
-            URL.createObjectURL(blob);
+        const url =
+            URL.createObjectURL(
+                blob
+            );
 
 
-        const link=
-            document.createElement("a");
+        const link =
+            document.createElement(
+                "a"
+            );
 
 
-        link.href=url;
+        link.href =
+            url;
 
-        link.download=
-            "tracker-mg-v05.csv";
+        link.download =
+            "tracker-mg-v04.csv";
 
 
         document.body.appendChild(
@@ -2257,10 +2402,13 @@ downloadCSV.addEventListener(
             link
         );
 
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(
+            url
+        );
     }
 );
 
 </script>
+
 </body>
 </html>
