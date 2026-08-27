@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Tracker MG - Carrito</title>
+<title>Tracker MG - V0.2</title>
 
 <style>
     body {
@@ -15,7 +15,7 @@
     }
 
     .container {
-        max-width: 600px;
+        max-width: 650px;
         margin: auto;
     }
 
@@ -25,7 +25,7 @@
 
     .subtitle {
         color: #666;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
     }
 
     .card {
@@ -40,17 +40,9 @@
         font-weight: bold;
     }
 
-    .ok {
-        color: #198754;
-    }
-
-    .waiting {
-        color: #d97706;
-    }
-
-    .error {
-        color: #dc3545;
-    }
+    .ok { color: #198754; }
+    .waiting { color: #d97706; }
+    .error { color: #dc3545; }
 
     .grid {
         display: grid;
@@ -59,7 +51,7 @@
     }
 
     .value {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 600;
     }
 
@@ -80,6 +72,10 @@
         cursor: pointer;
     }
 
+    button:disabled {
+        background: #aaa !important;
+    }
+
     #permissionButton {
         background: #007aff;
         color: white;
@@ -95,14 +91,33 @@
         color: white;
     }
 
-    button:disabled {
-        background: #aaa;
+    #resetButton {
+        background: #444;
+        color: white;
     }
 
-    .counter {
-        text-align: center;
-        font-size: 40px;
+    #csvButton {
+        background: #6f42c1;
+        color: white;
+    }
+
+    canvas {
+        width: 100%;
+        height: 420px;
+        background: #fafafa;
+        border-radius: 14px;
+        border: 1px solid #ddd;
+        display: block;
+    }
+
+    .big {
+        font-size: 32px;
         font-weight: 700;
+    }
+
+    .small {
+        color: #666;
+        font-size: 13px;
     }
 </style>
 </head>
@@ -111,11 +126,11 @@
 
 <div class="container">
 
-    <h1>🛒 Tracker MG</h1>
-    <div class="subtitle">Prueba de sensores para recorrido de carrito</div>
+    <h1>🛒 Tracker MG V0.2</h1>
+    <div class="subtitle">Primera prueba de trazado XY</div>
 
     <div class="card">
-        <div class="label">ESTADO DE SENSORES</div>
+        <div class="label">ESTADO</div>
         <div id="status" class="status waiting">
             ● Esperando autorización
         </div>
@@ -126,57 +141,40 @@
     </button>
 
     <div class="card">
-        <div class="label">ORIENTACIÓN</div>
-        <div class="value">
-            <span id="heading">---</span>°
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="label">ACELERACIÓN m/s²</div>
-
         <div class="grid">
             <div>
-                <div class="label">X</div>
-                <div class="value" id="accX">---</div>
+                <div class="label">ORIENTACIÓN</div>
+                <div class="value"><span id="heading">---</span>°</div>
             </div>
 
             <div>
-                <div class="label">Y</div>
-                <div class="value" id="accY">---</div>
+                <div class="label">TIEMPO</div>
+                <div class="value"><span id="elapsed">0.0</span> s</div>
             </div>
 
             <div>
-                <div class="label">Z</div>
-                <div class="value" id="accZ">---</div>
+                <div class="label">X estimado</div>
+                <div class="value"><span id="posX">0.00</span></div>
+            </div>
+
+            <div>
+                <div class="label">Y estimado</div>
+                <div class="value"><span id="posY">0.00</span></div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="label">ROTACIÓN °/s</div>
-
-        <div class="grid">
-            <div>
-                <div class="label">Alpha</div>
-                <div class="value" id="rotA">---</div>
-            </div>
-
-            <div>
-                <div class="label">Beta</div>
-                <div class="value" id="rotB">---</div>
-            </div>
-
-            <div>
-                <div class="label">Gamma</div>
-                <div class="value" id="rotG">---</div>
-            </div>
+        <div class="label">TRAZADO</div>
+        <canvas id="mapCanvas" width="600" height="600"></canvas>
+        <div class="small">
+            Esta versión es experimental. Primero queremos comprobar la forma del recorrido.
         </div>
     </div>
 
     <div class="card">
-        <div class="label">MUESTRAS REGISTRADAS</div>
-        <div id="samples" class="counter">0</div>
+        <div class="label">MUESTRAS</div>
+        <div id="samples" class="big">0</div>
     </div>
 
     <button id="startButton" disabled>
@@ -187,24 +185,96 @@
         ■ FINALIZAR PRUEBA
     </button>
 
+    <button id="resetButton">
+        ↻ REINICIAR TRAZADO
+    </button>
+
+    <button id="csvButton" disabled>
+        DESCARGAR CSV
+    </button>
+
 </div>
 
 <script>
 
 let sensorsActive = false;
 let recording = false;
-let sampleCount = 0;
+
 let data = [];
+let sampleCount = 0;
+
+let heading = 0;
+
+let posX = 0;
+let posY = 0;
+
+let velX = 0;
+let velY = 0;
+
+let lastTime = null;
+let startTime = null;
+
+let filteredForwardAcc = 0;
+
+const ACC_THRESHOLD = 0.10;
+const DAMPING = 0.88;
+const SCALE = 18;
 
 const statusEl = document.getElementById("status");
+const headingEl = document.getElementById("heading");
+const elapsedEl = document.getElementById("elapsed");
+const posXEl = document.getElementById("posX");
+const posYEl = document.getElementById("posY");
+const samplesEl = document.getElementById("samples");
+
 const permissionButton = document.getElementById("permissionButton");
 const startButton = document.getElementById("startButton");
 const stopButton = document.getElementById("stopButton");
+const resetButton = document.getElementById("resetButton");
+const csvButton = document.getElementById("csvButton");
+
+const canvas = document.getElementById("mapCanvas");
+const ctx = canvas.getContext("2d");
 
 function number(value) {
-    if (value === null || value === undefined) return "---";
+    if (value === null || value === undefined || isNaN(value)) return "---";
     return Number(value).toFixed(2);
 }
+
+function drawBackground() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#e5e5e5";
+    ctx.lineWidth = 1;
+
+    const spacing = 30;
+
+    for (let x = 0; x <= canvas.width; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y <= canvas.height; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = "#111";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#555";
+    ctx.font = "14px sans-serif";
+    ctx.fillText("INICIO", canvas.width / 2 + 10, canvas.height / 2 - 10);
+}
+
+drawBackground();
 
 async function activateSensors() {
 
@@ -214,11 +284,9 @@ async function activateSensors() {
             typeof DeviceMotionEvent !== "undefined" &&
             typeof DeviceMotionEvent.requestPermission === "function"
         ) {
+            const result = await DeviceMotionEvent.requestPermission();
 
-            const motionPermission =
-                await DeviceMotionEvent.requestPermission();
-
-            if (motionPermission !== "granted") {
+            if (result !== "granted") {
                 throw new Error("Permiso de movimiento rechazado");
             }
         }
@@ -227,11 +295,9 @@ async function activateSensors() {
             typeof DeviceOrientationEvent !== "undefined" &&
             typeof DeviceOrientationEvent.requestPermission === "function"
         ) {
+            const result = await DeviceOrientationEvent.requestPermission();
 
-            const orientationPermission =
-                await DeviceOrientationEvent.requestPermission();
-
-            if (orientationPermission !== "granted") {
+            if (result !== "granted") {
                 throw new Error("Permiso de orientación rechazado");
             }
         }
@@ -257,66 +323,147 @@ async function activateSensors() {
     }
 }
 
-function motionHandler(event) {
-
-    const acc = event.acceleration;
-    const rot = event.rotationRate;
-
-    if (acc) {
-        document.getElementById("accX").textContent = number(acc.x);
-        document.getElementById("accY").textContent = number(acc.y);
-        document.getElementById("accZ").textContent = number(acc.z);
-    }
-
-    if (rot) {
-        document.getElementById("rotA").textContent = number(rot.alpha);
-        document.getElementById("rotB").textContent = number(rot.beta);
-        document.getElementById("rotG").textContent = number(rot.gamma);
-    }
-
-    if (recording) {
-
-        data.push({
-            time: Date.now(),
-            ax: acc ? acc.x : null,
-            ay: acc ? acc.y : null,
-            az: acc ? acc.z : null,
-            alpha: rot ? rot.alpha : null,
-            beta: rot ? rot.beta : null,
-            gamma: rot ? rot.gamma : null
-        });
-
-        sampleCount++;
-
-        document.getElementById("samples").textContent =
-            sampleCount;
-    }
-}
-
 function orientationHandler(event) {
-
-    let heading;
 
     if (event.webkitCompassHeading !== undefined) {
         heading = event.webkitCompassHeading;
-    } else {
-        heading = event.alpha;
+    } else if (event.alpha !== null) {
+        heading = 360 - event.alpha;
     }
 
-    document.getElementById("heading").textContent =
-        number(heading);
+    heading = (heading + 360) % 360;
+
+    headingEl.textContent = number(heading);
+}
+
+function motionHandler(event) {
+
+    if (!recording) return;
+
+    const now = performance.now();
+
+    if (lastTime === null) {
+        lastTime = now;
+        return;
+    }
+
+    let dt = (now - lastTime) / 1000;
+
+    if (dt > 0.2) dt = 0.2;
+
+    lastTime = now;
+
+    const acc = event.acceleration || {};
+
+    const ax = acc.x || 0;
+    const ay = acc.y || 0;
+    const az = acc.z || 0;
+
+    /*
+       En esta primera prueba asumimos:
+       teléfono casi horizontal y fijo al carrito.
+       Usaremos principalmente la aceleración Y
+       como estimación de avance.
+    */
+
+    let forwardAcc = -ay;
+
+    filteredForwardAcc =
+        filteredForwardAcc * 0.80 +
+        forwardAcc * 0.20;
+
+    if (Math.abs(filteredForwardAcc) < ACC_THRESHOLD) {
+        filteredForwardAcc = 0;
+    }
+
+    let angle = heading * Math.PI / 180;
+
+    let worldAx = Math.sin(angle) * filteredForwardAcc;
+    let worldAy = Math.cos(angle) * filteredForwardAcc;
+
+    velX += worldAx * dt;
+    velY += worldAy * dt;
+
+    velX *= DAMPING;
+    velY *= DAMPING;
+
+    if (Math.abs(filteredForwardAcc) < ACC_THRESHOLD) {
+        velX *= 0.75;
+        velY *= 0.75;
+    }
+
+    posX += velX * dt;
+    posY += velY * dt;
+
+    sampleCount++;
+
+    const elapsed = (now - startTime) / 1000;
+
+    samplesEl.textContent = sampleCount;
+    elapsedEl.textContent = elapsed.toFixed(1);
+    posXEl.textContent = posX.toFixed(2);
+    posYEl.textContent = posY.toFixed(2);
+
+    data.push({
+        time_seconds: elapsed.toFixed(3),
+        heading: heading.toFixed(2),
+        ax: ax.toFixed(4),
+        ay: ay.toFixed(4),
+        az: az.toFixed(4),
+        filtered_forward_acc: filteredForwardAcc.toFixed(4),
+        velocity_x: velX.toFixed(4),
+        velocity_y: velY.toFixed(4),
+        x: posX.toFixed(4),
+        y: posY.toFixed(4)
+    });
+
+    drawPoint(posX, posY);
+}
+
+function drawPoint(x, y) {
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const px = centerX + x * SCALE;
+    const py = centerY - y * SCALE;
+
+    if (data.length < 2) return;
+
+    const previous = data[data.length - 2];
+
+    const previousX =
+        centerX + Number(previous.x) * SCALE;
+
+    const previousY =
+        centerY - Number(previous.y) * SCALE;
+
+    ctx.strokeStyle = "#007aff";
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(previousX, previousY);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+
+    ctx.fillStyle = "#dc3545";
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function startRecording() {
 
-    data = [];
-    sampleCount = 0;
-    recording = true;
+    resetTracking();
 
-    document.getElementById("samples").textContent = "0";
+    recording = true;
+    startTime = performance.now();
+    lastTime = null;
 
     startButton.disabled = true;
     stopButton.disabled = false;
+    csvButton.disabled = true;
 
     statusEl.textContent = "● GRABANDO RECORRIDO";
     statusEl.className = "status ok";
@@ -329,30 +476,89 @@ function stopRecording() {
     startButton.disabled = false;
     stopButton.disabled = true;
 
+    if (data.length > 0) {
+        csvButton.disabled = false;
+    }
+
     statusEl.textContent =
         "● Prueba finalizada — " +
         sampleCount +
         " muestras";
 
     statusEl.className = "status waiting";
-
-    console.log(data);
 }
 
-permissionButton.addEventListener(
-    "click",
-    activateSensors
-);
+function resetTracking() {
 
-startButton.addEventListener(
-    "click",
-    startRecording
-);
+    recording = false;
 
-stopButton.addEventListener(
-    "click",
-    stopRecording
-);
+    data = [];
+    sampleCount = 0;
+
+    posX = 0;
+    posY = 0;
+
+    velX = 0;
+    velY = 0;
+
+    filteredForwardAcc = 0;
+
+    lastTime = null;
+    startTime = null;
+
+    samplesEl.textContent = "0";
+    elapsedEl.textContent = "0.0";
+    posXEl.textContent = "0.00";
+    posYEl.textContent = "0.00";
+
+    drawBackground();
+
+    stopButton.disabled = true;
+    csvButton.disabled = true;
+
+    if (sensorsActive) {
+        startButton.disabled = false;
+        statusEl.textContent = "● Listo para nueva prueba";
+        statusEl.className = "status waiting";
+    }
+}
+
+function downloadCSV() {
+
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+
+    let csv = headers.join(",") + "\n";
+
+    for (const row of data) {
+        csv += headers.map(key => row[key]).join(",") + "\n";
+    }
+
+    const blob = new Blob([csv], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "tracker-mg-recorrido.csv";
+
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
+
+permissionButton.addEventListener("click", activateSensors);
+startButton.addEventListener("click", startRecording);
+stopButton.addEventListener("click", stopRecording);
+resetButton.addEventListener("click", resetTracking);
+csvButton.addEventListener("click", downloadCSV);
 
 </script>
 
