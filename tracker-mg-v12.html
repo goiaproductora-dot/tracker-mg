@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Tracker MG V1.2</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
+.container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
+.card{background:#fff;border-radius:18px;padding:17px;margin-bottom:14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.label{color:#777;font-size:12px;margin-bottom:4px}.value{font-size:23px;font-weight:650}.big{font-size:34px;font-weight:750}
+.status{font-size:19px;font-weight:bold}.ok{color:#198754}.waiting{color:#d97706}.error{color:#dc3545}
+.mainButton,.secondary{width:100%;border:none;border-radius:17px;padding:20px;font-size:18px;font-weight:bold;margin-bottom:14px;color:#fff}.mainButton{background:#198754}.mainButton.stop{background:#dc3545}.secondary{background:#555;padding:15px;border-radius:14px;font-size:15px}.purple{background:#6f42c1}button:disabled{opacity:.45}
+canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:15px;background:#fafafa}.note{font-size:13px;color:#666;line-height:1.45;margin-top:9px}
+.sensorInfo{margin-top:10px;padding:10px;border-radius:10px;background:#edf6ff;color:#125e9c;font-size:13px;font-weight:bold}
+.stopRow,.zoneRow{display:grid;grid-template-columns:45px 1fr 1fr;gap:8px;border-top:1px solid #eee;padding:10px 0;font-size:14px}.badge{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#dc3545;color:#fff;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🛒 Tracker MG V1.2</h1>
+<div class="subtitle">ONE TAP · dirección estabilizada · recorrido · paradas · zonas</div>
+
+<div class="card">
+  <div class="label">ESTADO</div>
+  <div id="status" class="status waiting">● Listo para comenzar</div>
+  <div id="sensorInfo" class="sensorInfo">Un toque activa sensores y empieza el recorrido.</div>
+</div>
+<button id="mainButton" class="mainButton">▶ INICIAR TRACKING</button>
+
+<div class="card"><div class="grid">
+  <div><div class="label">TIEMPO</div><div class="big"><span id="time">0</span> s</div></div>
+  <div><div class="label">DISTANCIA EST.</div><div class="big"><span id="distance">0.0</span> m</div></div>
+  <div><div class="label">PARADAS</div><div id="stopCount" class="big">0</div></div>
+  <div><div class="label">TIEMPO PARADO</div><div class="big"><span id="stoppedTime">0</span> s</div></div>
+</div></div>
+
+<div class="card"><div class="grid">
+  <div><div class="label">DIRECCIÓN SENSOR</div><div class="value"><span id="heading">---</span>°</div></div>
+  <div><div class="label">GIRO USADO</div><div class="value"><span id="turn">---</span>°</div></div>
+  <div><div class="label">FUENTE</div><div id="source" class="value">---</div></div>
+  <div><div class="label">FRECUENCIA</div><div class="value"><span id="frequency">---</span> Hz</div></div>
+  <div><div class="label">ESTADO GIRO</div><div id="turnState" class="value">---</div></div>
+  <div><div class="label">VELOCIDAD ANGULAR</div><div class="value"><span id="headingRate">0.0</span>°/s</div></div>
+</div></div>
+
+<div class="card">
+  <div class="label">RECORRIDO RELATIVO</div>
+  <canvas id="canvas" width="700" height="700"></canvas>
+  <div class="note">🔴 inicio · 🟢 posición actual/final · círculos rojos = paradas. Grilla cada 2 m.<br><strong>Colocación:</strong> iPhone acostado, pantalla hacia arriba, modo retrato, borde superior apuntando al frente del carrito.</div>
+</div>
+
+<button id="downloadCSV" class="secondary purple" disabled>DESCARGAR CSV</button>
+<button id="resetButton" class="secondary">BORRAR RECORRIDO</button>
+
+<div class="card">
+  <h2>Paradas detectadas</h2>
+  <div class="note">Se confirma tras 3 s. Una vez confirmada, pequeños movimientos dentro de un radio de 2 m siguen siendo la misma parada.</div>
+  <div id="activeStop">Sin parada activa.</div>
+  <div id="stopList"><div class="note">Todavía no hay paradas.</div></div>
+</div>
+
+<div class="card">
+  <h2>Zonas automáticas</h2>
+  <div class="note">Por ahora Z1, Z2… agrupan paradas que ocurren a menos de 3 m entre sí. Luego podremos asociarlas al layout real de la tienda.</div>
+  <div id="zoneList"><div class="note">Todavía no hay zonas.</div></div>
+</div>
+</div>
+
+<script>
+/* =========================================================
+   V1.2 — PRINCIPIO
+   - NO usa gyro para dirección.
+   - iPhone: webkitCompassHeading.
+   - Android: alpha.
+   - Bloquea pequeñas derivas mientras se avanza recto.
+   - Sólo libera la dirección cuando detecta un giro REAL y sostenido.
+========================================================= */
+
+const IS_IOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+const DISTANCE_FACTOR=IS_IOS?0.438:0.413;
+const MOVEMENT_THRESHOLD=0.055;
+const STOP_CONFIRM_SECONDS=3;
+const STOP_CONFIRM_RADIUS_METERS=0.75;
+const STOP_ZONE_RADIUS_METERS=2.0;
+const ZONE_RADIUS_METERS=3.0;
+
+/* Dirección: parámetros conservadores para distinguir giro real de drift */
+const HEADING_SMOOTH=0.32;              // más rápido que V1.0, todavía filtrado
+const RATE_SMOOTH=0.25;
+const TURN_START_RATE_DPS=10;            // giro real normalmente supera esto
+const TURN_START_DELTA_DEG=10;
+const TURN_CONFIRM_MS=180;               // evita reaccionar a un salto aislado
+const TURN_END_RATE_DPS=4.5;
+const TURN_END_MS=320;
+const STRAIGHT_DRIFT_ALLOW_DEG=8;        // variaciones pequeñas se ignoran en recta
+const MAX_REASONABLE_RATE_DPS=180;
+
+let sensorsInitialized=false, recording=false;
+let headingSource=null, rawHeading=null, filteredHeading=null;
+let lockedHeading=null, navHeading=null, routeStartNavHeading=null;
+let prevFilteredHeading=null, prevHeadingTime=null, headingRate=0, headingRateFiltered=0;
+let turning=false, turnCandidateSince=null, turnStableSince=null;
+let lastMotionTime=null, filteredEnergy=0, routeStartTime=null;
+let totalDistance=0,x=0,y=0,route=[],stops=[],zones=[];
+let stopCandidate=null,activeStop=null,stoppedSeconds=0;
+let sampleCounter=0,frequencyStart=performance.now(),lastDraw=0;
+
+const $=id=>document.getElementById(id);
+const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton');
+const timeEl=$('time'),distanceEl=$('distance'),stopCountEl=$('stopCount'),stoppedTimeEl=$('stoppedTime');
+const headingEl=$('heading'),turnEl=$('turn'),sourceEl=$('source'),frequencyEl=$('frequency'),turnStateEl=$('turnState'),headingRateEl=$('headingRate');
+const activeStopEl=$('activeStop'),stopListEl=$('stopList'),zoneListEl=$('zoneList'),downloadCSV=$('downloadCSV');
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+
+mainButton.addEventListener('click',async()=>{if(recording)finishTracking();else await startTracking();});
+$('resetButton').addEventListener('click',()=>{resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=true;});
+
+async function startTracking(){
+  try{
+    await initializeSensors();
+    const ready=await waitForHeading();
+    if(!ready) throw new Error('No hay sensor de orientación disponible');
+    resetRouteOnly();
+    lockedHeading=filteredHeading;
+    navHeading=filteredHeading;
+    routeStartNavHeading=filteredHeading;
+    prevFilteredHeading=filteredHeading;
+    prevHeadingTime=performance.now();
+    routeStartTime=performance.now();
+    recording=true;
+    route.push(makeRow(0,0));
+    statusEl.textContent='● TRACKING ACTIVO';statusEl.className='status ok';
+    sensorInfo.textContent='Dirección: '+headingSource+'-LOCK · perfil '+(IS_IOS?'iPhone':'Android')+' · factor '+DISTANCE_FACTOR.toFixed(3);
+    mainButton.textContent='■ FINALIZAR TRACKING';mainButton.classList.add('stop');downloadCSV.disabled=true;draw();
+  }catch(e){statusEl.textContent='● '+e.message;statusEl.className='status error';}
+}
+
+function finishTracking(){
+  if(activeStop)finishActiveStop();
+  recording=false;
+  statusEl.textContent='● FINALIZADO — '+totalDistance.toFixed(1)+' m';statusEl.className='status waiting';
+  mainButton.textContent='▶ INICIAR NUEVO TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=route.length===0;draw();
+}
+
+async function initializeSensors(){
+  if(sensorsInitialized)return;
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+    const r=await DeviceMotionEvent.requestPermission();if(r!=='granted')throw new Error('Permiso de movimiento rechazado');
+  }
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('Permiso de orientación rechazado');
+  }
+  window.addEventListener('deviceorientation',orientationHandler);
+  window.addEventListener('devicemotion',motionHandler);
+  sensorsInitialized=true;
+}
+
+function waitForHeading(){return new Promise(resolve=>{const start=performance.now();const t=setInterval(()=>{if(filteredHeading!==null){clearInterval(t);resolve(true);}else if(performance.now()-start>1800){clearInterval(t);resolve(false);}},50);});}
+
+function orientationHandler(e){
+  let h=null;
+  if(e.webkitCompassHeading!==undefined&&e.webkitCompassHeading!==null&&Number.isFinite(e.webkitCompassHeading)){
+    h=e.webkitCompassHeading;headingSource='COMPASS';
+  }else if(e.alpha!==undefined&&e.alpha!==null&&Number.isFinite(e.alpha)){
+    h=normalizeDegrees(360-e.alpha);headingSource='ALPHA';
+  }
+  if(h===null)return;
+  rawHeading=h;
+  if(filteredHeading===null)filteredHeading=h;
+  else filteredHeading=normalizeDegrees(filteredHeading+shortestAngle(filteredHeading,h)*HEADING_SMOOTH);
+  headingEl.textContent=filteredHeading.toFixed(1);sourceEl.textContent=headingSource+'-LOCK';
+
+  const now=performance.now();
+  if(prevFilteredHeading!==null&&prevHeadingTime!==null){
+    let dt=(now-prevHeadingTime)/1000;
+    if(dt>0&&dt<0.3){
+      let rate=shortestAngle(prevFilteredHeading,filteredHeading)/dt;
+      rate=Math.max(-MAX_REASONABLE_RATE_DPS,Math.min(MAX_REASONABLE_RATE_DPS,rate));
+      headingRate=rate;
+      headingRateFiltered=headingRateFiltered*(1-RATE_SMOOTH)+rate*RATE_SMOOTH;
+      headingRateEl.textContent=headingRateFiltered.toFixed(1);
+    }
+  }
+  prevFilteredHeading=filteredHeading;prevHeadingTime=now;
+  if(recording)updateNavigationHeading(now);
+}
+
+function updateNavigationHeading(now){
+  if(lockedHeading===null){lockedHeading=filteredHeading;navHeading=filteredHeading;return;}
+  const deltaFromLock=shortestAngle(lockedHeading,filteredHeading);
+  const absRate=Math.abs(headingRateFiltered);
+
+  if(!turning){
+    /* En recta NO perseguimos lentamente al magnetómetro. */
+    navHeading=lockedHeading;
+    const looksLikeTurn=Math.abs(deltaFromLock)>=TURN_START_DELTA_DEG&&absRate>=TURN_START_RATE_DPS;
+    if(looksLikeTurn){
+      if(turnCandidateSince===null)turnCandidateSince=now;
+      if(now-turnCandidateSince>=TURN_CONFIRM_MS){turning=true;turnCandidateSince=null;turnStableSince=null;navHeading=filteredHeading;}
+    }else{
+      turnCandidateSince=null;
+      /* Sólo dejamos microajuste si la desviación es realmente mínima. */
+      if(Math.abs(deltaFromLock)<=STRAIGHT_DRIFT_ALLOW_DEG){
+        lockedHeading=normalizeDegrees(lockedHeading+deltaFromLock*0.01);
+        navHeading=lockedHeading;
+      }
+    }
+  }else{
+    /* Durante el giro sí seguimos al sensor. */
+    navHeading=filteredHeading;
+    if(absRate<=TURN_END_RATE_DPS){
+      if(turnStableSince===null)turnStableSince=now;
+      if(now-turnStableSince>=TURN_END_MS){
+        turning=false;lockedHeading=filteredHeading;navHeading=lockedHeading;turnStableSince=null;
+      }
+    }else turnStableSince=null;
+  }
+  turnStateEl.textContent=turning?'GIRANDO':'RECTO';
+  if(routeStartNavHeading!==null)turnEl.textContent=shortestAngle(routeStartNavHeading,navHeading).toFixed(1);
+}
+
+function motionHandler(e){
+  const now=performance.now();sampleCounter++;
+  if(now-frequencyStart>=1000){frequencyEl.textContent=sampleCounter;sampleCounter=0;frequencyStart=now;}
+  if(lastMotionTime===null){lastMotionTime=now;return;}
+  let dt=(now-lastMotionTime)/1000;lastMotionTime=now;if(dt>0.1)dt=0.1;
+  const a=e.acceleration;if(!a)return;
+  const ax=a.x||0,ay=a.y||0,az=a.z||0;
+  const magnitude=Math.sqrt(ax*ax+ay*ay+az*az);
+  filteredEnergy=filteredEnergy*0.75+magnitude*0.25;
+  const energy=Math.max(0,filteredEnergy-MOVEMENT_THRESHOLD);
+  if(!recording||navHeading===null||routeStartNavHeading===null)return;
+
+  let step=energy*dt*DISTANCE_FACTOR;if(step>0.20)step=0.20;
+  const turn=shortestAngle(routeStartNavHeading,navHeading);
+  const angle=turn*Math.PI/180;
+  x+=Math.sin(angle)*step;y+=Math.cos(angle)*step;totalDistance+=step;
+  const elapsed=(now-routeStartTime)/1000;
+  timeEl.textContent=elapsed.toFixed(0);distanceEl.textContent=totalDistance.toFixed(1);
+  route.push(makeRow(elapsed,step,energy,ax,ay,az));
+  updateStops(energy,elapsed,now);
+  if(now-lastDraw>100){draw();lastDraw=now;}
+}
+
+function makeRow(time,step=0,energy=0,ax='',ay='',az=''){
+  return {time,x,y,distance:totalDistance,step,energy,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,turn_state:turning?'TURNING':'STRAIGHT',source:headingSource??'',ax,ay,az};
+}
+
+/* PARADAS */
+function updateStops(energy,elapsed,now){
+  if(activeStop){const d=Math.hypot(x-activeStop.x,y-activeStop.y);activeStopEl.textContent='🛑 PARADA '+activeStop.number+' activa · '+d.toFixed(1)+' / 2.0 m';if(d>STOP_ZONE_RADIUS_METERS)finishActiveStop();return;}
+  if(!stopCandidate){if(energy===0)stopCandidate={startTime:now,elapsed,distance:totalDistance,x,y};return;}
+  const d=Math.hypot(x-stopCandidate.x,y-stopCandidate.y);if(d>STOP_CONFIRM_RADIUS_METERS){stopCandidate=null;return;}
+  if((now-stopCandidate.startTime)/1000>=STOP_CONFIRM_SECONDS){activeStop={number:stops.length+1,startElapsed:stopCandidate.elapsed,startDistance:stopCandidate.distance,x:stopCandidate.x,y:stopCandidate.y};stopCandidate=null;activeStopEl.textContent='🛑 PARADA '+activeStop.number+' activa';}
+}
+function finishActiveStop(){if(!activeStop)return;const elapsed=(performance.now()-routeStartTime)/1000;const s={number:activeStop.number,start:activeStop.startElapsed,duration:elapsed-activeStop.startElapsed,distance:activeStop.startDistance,x:activeStop.x,y:activeStop.y};stops.push(s);stoppedSeconds+=s.duration;activeStop=null;activeStopEl.textContent='Sin parada activa.';assignStopToZone(s);refreshStops();refreshZones();}
+function assignStopToZone(s){let best=null,bestD=Infinity;for(const z of zones){const d=Math.hypot(s.x-z.x,s.y-z.y);if(d<bestD){bestD=d;best=z;}}if(best&&bestD<=ZONE_RADIUS_METERS){best.visits++;best.dwell+=s.duration;best.x=(best.x*(best.visits-1)+s.x)/best.visits;best.y=(best.y*(best.visits-1)+s.y)/best.visits;s.zone=best.id;}else{const z={id:'Z'+(zones.length+1),x:s.x,y:s.y,visits:1,dwell:s.duration};zones.push(z);s.zone=z.id;}}
+function refreshStops(){stopCountEl.textContent=stops.length;stoppedTimeEl.textContent=stoppedSeconds.toFixed(0);if(!stops.length){stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';return;}stopListEl.innerHTML=stops.map(s=>'<div class="stopRow"><div><span class="badge">'+s.number+'</span></div><div>'+clock(s.start)+' · '+(s.zone||'')+'</div><div><strong>'+s.duration.toFixed(1)+' s</strong></div></div>').join('');}
+function refreshZones(){if(!zones.length){zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';return;}zoneListEl.innerHTML=zones.map(z=>'<div class="zoneRow"><div><strong>'+z.id+'</strong></div><div>'+z.visits+' visita'+(z.visits===1?'':'s')+'</div><div><strong>'+z.dwell.toFixed(0)+' s</strong></div></div>').join('');}
+
+/* DIBUJO */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fafafa';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const pts=route.length?route:[{x:0,y:0}];let minX=Math.min(...pts.map(p=>p.x),0),maxX=Math.max(...pts.map(p=>p.x),0),minY=Math.min(...pts.map(p=>p.y),0),maxY=Math.max(...pts.map(p=>p.y),0);
+  const minRange=12;let rangeX=Math.max(minRange,maxX-minX),rangeY=Math.max(minRange,maxY-minY);const cx=(minX+maxX)/2,cy=(minY+maxY)/2;minX=cx-rangeX/2;maxX=cx+rangeX/2;minY=cy-rangeY/2;maxY=cy+rangeY/2;
+  const m=45,scale=Math.min((canvas.width-2*m)/rangeX,(canvas.height-2*m)/rangeY);const sx=v=>m+(v-minX)*scale,sy=v=>canvas.height-m-(v-minY)*scale;
+  ctx.strokeStyle='#e5e5e5';ctx.lineWidth=1;for(let gx=Math.floor(minX/2)*2;gx<=maxX;gx+=2){ctx.beginPath();ctx.moveTo(sx(gx),m);ctx.lineTo(sx(gx),canvas.height-m);ctx.stroke();}for(let gy=Math.floor(minY/2)*2;gy<=maxY;gy+=2){ctx.beginPath();ctx.moveTo(m,sy(gy));ctx.lineTo(canvas.width-m,sy(gy));ctx.stroke();}
+  if(route.length>1){ctx.strokeStyle='#15965f';ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(sx(route[0].x),sy(route[0].y));for(let i=1;i<route.length;i++)ctx.lineTo(sx(route[i].x),sy(route[i].y));ctx.stroke();}
+  ctx.fillStyle='#dc3545';ctx.beginPath();ctx.arc(sx(0),sy(0),8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#333';ctx.font='14px sans-serif';ctx.fillText('INICIO',sx(0)+10,sy(0)-8);
+  stops.forEach(s=>{const r=Math.min(25,9+s.duration*.2);ctx.fillStyle='rgba(220,53,69,.88)';ctx.beginPath();ctx.arc(sx(s.x),sy(s.y),r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 15px sans-serif';ctx.fillText(s.number,sx(s.x),sy(s.y));ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#111';ctx.fillText(s.duration.toFixed(0)+'s',sx(s.x)+r+4,sy(s.y));});
+  if(route.length){const p=route[route.length-1];ctx.fillStyle='#198754';ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),7,0,Math.PI*2);ctx.fill();}
+}
+
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;turnCandidateSince=null;turnStableSince=null;timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+
+/* CSV */
+downloadCSV.addEventListener('click',()=>{
+  if(!route.length)return;
+  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','turn_state','x_m','y_m','distance_step','total_distance','energy','ax','ay','az'];
+  let csv=headers.join(',')+'\n';for(const r of route){csv+=headers.map(k=>{const map={x_m:r.x,y_m:r.y,distance_step:r.step,total_distance:r.distance};const v=k in map?map[k]:r[k];return typeof v==='number'?v.toFixed(5):(v??'');}).join(',')+'\n';}
+  csv+='\nSTOP_NUMBER,ZONE,START_TIME,DURATION,X,Y,DISTANCE\n';for(const s of stops)csv+=[s.number,s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3)].join(',')+'\n';
+  csv+='\nZONE,VISITS,DWELL_SECONDS,X,Y\n';for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4)].join(',')+'\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tracker-mg-v12.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+});
+
+function normalizeDegrees(d){return((d%360)+360)%360;}
+function shortestAngle(from,to){return((to-from+540)%360)-180;}
+function clock(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
+draw();
+</script>
+</body>
+</html>
