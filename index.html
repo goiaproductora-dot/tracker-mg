@@ -1,2539 +1,398 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-
-<title>Tracker MG V1.0</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Tracker MG V1.1</title>
 <style>
-
-body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    margin:0;
-    padding:16px;
-    background:#f2f2f7;
-    color:#111;
-}
-
-.container{
-    max-width:720px;
-    margin:auto;
-}
-
-h1{
-    margin:6px 0 2px;
-    font-size:34px;
-}
-
-.subtitle{
-    color:#666;
-    margin-bottom:18px;
-}
-
-.card{
-    background:white;
-    border-radius:18px;
-    padding:17px;
-    margin-bottom:14px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-}
-
-.label{
-    color:#777;
-    font-size:12px;
-    margin-bottom:4px;
-}
-
-.value{
-    font-size:24px;
-    font-weight:650;
-}
-
-.big{
-    font-size:34px;
-    font-weight:750;
-}
-
-.status{
-    font-size:19px;
-    font-weight:bold;
-}
-
-.ok{color:#198754}
-.waiting{color:#d97706}
-.error{color:#dc3545}
-
-.mainButton{
-    width:100%;
-    border:none;
-    border-radius:17px;
-    padding:20px;
-    font-size:19px;
-    font-weight:bold;
-    margin-bottom:14px;
-    background:#198754;
-    color:white;
-}
-
-.stopButton{
-    background:#dc3545;
-}
-
-.secondary{
-    width:100%;
-    border:none;
-    border-radius:14px;
-    padding:15px;
-    font-size:15px;
-    font-weight:bold;
-    margin-top:8px;
-    background:#555;
-    color:white;
-}
-
-.purple{
-    background:#6f42c1;
-}
-
-button:disabled{
-    opacity:.45;
-}
-
-canvas{
-    width:100%;
-    height:auto;
-    display:block;
-    border:1px solid #ddd;
-    border-radius:15px;
-    background:#fafafa;
-}
-
-.note{
-    font-size:13px;
-    color:#666;
-    line-height:1.45;
-    margin-top:9px;
-}
-
-.stopRow{
-    display:grid;
-    grid-template-columns:45px 1fr 1fr;
-    gap:8px;
-    border-top:1px solid #eee;
-    padding:10px 0;
-    font-size:14px;
-}
-
-.badge{
-    width:30px;
-    height:30px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    background:#dc3545;
-    color:white;
-    font-weight:bold;
-}
-
-.sensorInfo{
-    margin-top:10px;
-    padding:10px;
-    border-radius:10px;
-    background:#edf6ff;
-    color:#125e9c;
-    font-size:13px;
-    font-weight:bold;
-}
-
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
+.container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
+.card{background:#fff;border-radius:18px;padding:17px;margin-bottom:14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.label{color:#777;font-size:12px;margin-bottom:4px}.value{font-size:23px;font-weight:650}.big{font-size:34px;font-weight:750}
+.status{font-size:19px;font-weight:bold}.ok{color:#198754}.waiting{color:#d97706}.error{color:#dc3545}
+.mainButton,.secondary{width:100%;border:none;border-radius:17px;padding:19px;font-size:18px;font-weight:bold;margin-bottom:14px;color:#fff}
+.mainButton{background:#198754}.stopButton{background:#dc3545}.secondary{background:#555;border-radius:14px;padding:15px;font-size:15px;margin-top:8px}.purple{background:#6f42c1}button:disabled{opacity:.45}
+canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:15px;background:#fafafa}
+.note{font-size:13px;color:#666;line-height:1.45;margin-top:9px}.sensorInfo{margin-top:10px;padding:10px;border-radius:10px;background:#edf6ff;color:#125e9c;font-size:13px;font-weight:bold}
+.row{display:grid;grid-template-columns:45px 1fr 1fr;gap:8px;border-top:1px solid #eee;padding:10px 0;font-size:14px}.zoneRow{display:grid;grid-template-columns:55px 1fr 1fr;gap:8px;border-top:1px solid #eee;padding:10px 0;font-size:14px}
+.badge{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#dc3545;color:#fff;font-weight:bold}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2f6;font-size:12px;font-weight:700}
 </style>
-
 </head>
-
 <body>
-
 <div class="container">
-
-<h1>🛒 Tracker MG V1.0</h1>
-
-<div class="subtitle">
-ONE TAP — recorrido + paradas
-</div>
-
+<h1>🛒 Tracker MG V1.1</h1>
+<div class="subtitle">ONE TAP · heading híbrido · recorrido + paradas + zonas</div>
 
 <div class="card">
-
-<div class="label">
-ESTADO
+  <div class="label">ESTADO</div>
+  <div id="status" class="status waiting">● Listo para comenzar</div>
+  <div id="sensorInfo" class="sensorInfo">Al tocar iniciar, dejá el teléfono quieto 2 segundos. La calibración es automática.</div>
 </div>
 
-<div
-id="status"
-class="status waiting">
+<button id="mainButton" class="mainButton">▶ INICIAR TRACKING</button>
 
-● Listo para comenzar
+<div class="card"><div class="grid">
+  <div><div class="label">TIEMPO</div><div class="big"><span id="time">0</span> s</div></div>
+  <div><div class="label">DISTANCIA EST.</div><div class="big"><span id="distance">0.0</span> m</div></div>
+  <div><div class="label">PARADAS</div><div id="stopCount" class="big">0</div></div>
+  <div><div class="label">TIEMPO PARADO</div><div class="big"><span id="stoppedTime">0</span> s</div></div>
+</div></div>
 
-</div>
-
-<div
-id="sensorInfo"
-class="sensorInfo">
-
-Un toque activa sensores y comienza el recorrido.
-
-</div>
-
-</div>
-
-
-<button
-id="mainButton"
-class="mainButton">
-
-▶ INICIAR TRACKING
-
-</button>
-
+<div class="card"><div class="grid">
+  <div><div class="label">DIRECCIÓN</div><div class="value"><span id="heading">---</span>°</div></div>
+  <div><div class="label">GIRO DESDE INICIO</div><div class="value"><span id="turn">---</span>°</div></div>
+  <div><div class="label">FUENTE</div><div id="source" class="value">---</div></div>
+  <div><div class="label">FRECUENCIA</div><div class="value"><span id="frequency">---</span> Hz</div></div>
+  <div><div class="label">VELOCIDAD EST.</div><div class="value"><span id="speed">0.00</span> m/s</div></div>
+  <div><div class="label">GYRO BIAS</div><div class="value"><span id="gyroBias">---</span></div></div>
+</div></div>
 
 <div class="card">
-
-<div class="grid">
-
-
-<div>
-
-<div class="label">
-TIEMPO
+  <div class="label">RECORRIDO RELATIVO</div>
+  <canvas id="canvas" width="700" height="700"></canvas>
+  <div class="note">🔴 inicio · 🟢 posición actual/final · círculos rojos = paradas. La grilla es de 2 m. Para comparar dos pruebas, empezá desde el mismo lugar y con el teléfono apuntando en la misma dirección.</div>
 </div>
 
-<div class="big">
-
-<span id="time">
-0
-</span> s
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-DISTANCIA EST.
-</div>
-
-<div class="big">
-
-<span id="distance">
-0.0
-</span> m
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-PARADAS
-</div>
-
-<div
-id="stopCount"
-class="big">
-
-0
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-TIEMPO PARADO
-</div>
-
-<div class="big">
-
-<span id="stoppedTime">
-0
-</span> s
-
-</div>
-
-</div>
-
-
-</div>
-
-</div>
-
+<button id="downloadCSV" class="secondary purple" disabled>DESCARGAR CSV</button>
+<button id="resetButton" class="secondary">BORRAR RECORRIDO</button>
 
 <div class="card">
-
-<div class="grid">
-
-<div>
-
-<div class="label">
-DIRECCIÓN
+  <h2>Paradas detectadas</h2>
+  <div class="note">Se confirma después de 3 s. Una vez confirmada, puede moverse dentro de un radio de 2 m y continúa siendo la misma parada.</div>
+  <div id="activeStop">Sin parada activa.</div>
+  <div id="stopList"><div class="note">Todavía no hay paradas.</div></div>
 </div>
-
-<div class="value">
-
-<span id="heading">
----
-</span>°
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-GIRO DESDE INICIO
-</div>
-
-<div class="value">
-
-<span id="turn">
----
-</span>°
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-FUENTE
-</div>
-
-<div
-id="source"
-class="value">
-
----
-
-</div>
-
-</div>
-
-
-<div>
-
-<div class="label">
-FRECUENCIA
-</div>
-
-<div class="value">
-
-<span id="frequency">
----
-</span> Hz
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 
 <div class="card">
-
-<div class="label">
-RECORRIDO
+  <h2>Zonas automáticas</h2>
+  <div class="note">V1.1 agrupa paradas cercanas (≤3 m) en una misma zona. Por ahora se llaman Z1, Z2…; después las vinculamos una sola vez con Frutas, Lácteos, Shampoo, Mascotas, etc.</div>
+  <div id="zoneList"><div class="note">Todavía no hay zonas.</div></div>
 </div>
-
-<canvas
-id="canvas"
-width="700"
-height="700">
-</canvas>
-
-<div class="note">
-
-🔴 Inicio &nbsp;&nbsp;
-🟢 posición final/actual &nbsp;&nbsp;
-🔴 círculos numerados = paradas.
-
-<br>
-
-El dibujo utiliza autozoom. La orientación inicial del teléfono
-se considera automáticamente “hacia adelante”.
-
 </div>
-
-</div>
-
-
-<button
-id="downloadCSV"
-class="secondary purple"
-disabled>
-
-DESCARGAR CSV
-
-</button>
-
-
-<button
-id="resetButton"
-class="secondary">
-
-BORRAR RECORRIDO
-
-</button>
-
-
-<div class="card">
-
-<h2>Paradas detectadas</h2>
-
-<div class="note">
-
-Una parada se confirma después de 3 segundos.
-Si luego el carrito se mueve pero permanece dentro
-de un radio de 2 metros, continúa siendo la misma parada.
-
-</div>
-
-<div id="activeStop">
-Sin parada activa.
-</div>
-
-<div id="stopList">
-
-<div class="note">
-Todavía no hay paradas.
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 
 <script>
-
-/* =========================================================
-   CONFIGURACIÓN SIMPLE
-========================================================= */
-
-/*
-Última calibración mediana del iPhone V0.9.
-En una aplicación final este valor se guardaría
-como perfil del dispositivo/carrito.
-*/
-
-const DISTANCE_FACTOR = 0.438;
-
+/* ==================== CONFIG ==================== */
+const DISTANCE_FACTOR = 0.438;          // baseline iPhone validado
 const MOVEMENT_THRESHOLD = 0.055;
-
+const MOVE_ENERGY_GATE = 0.015;
+const MAX_CART_SPEED = 1.60;            // m/s, elimina picos irreales
+const SPEED_SMOOTHING = 0.18;
+const AUTO_CAL_MS = 2000;               // un toque, 2 s quieto
+const GYRO_DEADBAND_DPS = 0.35;
+const GYRO_MAX_DPS = 240;
+const COMPASS_CORRECTION_GAIN = 0.0015; // corrección muy lenta
+const COMPASS_CORRECTION_MAX_ERROR = 18;
 const STOP_CONFIRM_SECONDS = 3;
-
 const STOP_CONFIRM_RADIUS_METERS = 0.75;
-
 const STOP_ZONE_RADIUS_METERS = 2.0;
+const AUTO_ZONE_RADIUS_METERS = 3.0;
 
+/* ==================== ESTADO ==================== */
+let sensorsInitialized=false, recording=false, warming=false;
+let headingSource=null;
+let compassHeading=null, compassSmooth=null, compassAccuracy=null;
+let orientationYaw=null, startOrientationYaw=null;
+let gyroAvailable=false, gyroBias=0, gyroBiasSamples=[];
+let gyroTurnRaw=0, gyroSign=null, gyroCorrection=0;
+let fusedTurn=0;
+let lastMotionTime=null, filteredEnergy=0, speedFiltered=0;
+let routeStartTime=null, totalDistance=0, x=0, y=0;
+let route=[], stops=[], zones=[];
+let stopCandidate=null, activeStop=null, stoppedSeconds=0;
+let sampleCounter=0, frequencyStart=performance.now(), lastDraw=0;
+let warmupTimer=null;
 
-/* =========================================================
-   ESTADO
-========================================================= */
+/* ==================== DOM ==================== */
+const $=id=>document.getElementById(id);
+const statusEl=$('status'), sensorInfo=$('sensorInfo'), mainButton=$('mainButton');
+const timeEl=$('time'), distanceEl=$('distance'), stopCountEl=$('stopCount'), stoppedTimeEl=$('stoppedTime');
+const headingEl=$('heading'), turnEl=$('turn'), sourceEl=$('source'), frequencyEl=$('frequency'), speedEl=$('speed'), gyroBiasEl=$('gyroBias');
+const stopListEl=$('stopList'), activeStopEl=$('activeStop'), zoneListEl=$('zoneList'), downloadCSV=$('downloadCSV');
+const canvas=$('canvas'), ctx=canvas.getContext('2d');
 
-let sensorsInitialized = false;
-
-let recording = false;
-
-let headingSource = null;
-
-let headingSmooth = null;
-
-let routeStartHeading = null;
-
-let lastMotionTime = null;
-
-let filteredEnergy = 0;
-
-let routeStartTime = null;
-
-let totalDistance = 0;
-
-let x = 0;
-
-let y = 0;
-
-let route = [];
-
-let stops = [];
-
-let stopCandidate = null;
-
-let activeStop = null;
-
-let stoppedSeconds = 0;
-
-let sampleCounter = 0;
-
-let frequencyStart = performance.now();
-
-let lastDraw = 0;
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const statusEl =
-document.getElementById("status");
-
-const sensorInfo =
-document.getElementById("sensorInfo");
-
-const mainButton =
-document.getElementById("mainButton");
-
-const timeEl =
-document.getElementById("time");
-
-const distanceEl =
-document.getElementById("distance");
-
-const stopCountEl =
-document.getElementById("stopCount");
-
-const stoppedTimeEl =
-document.getElementById("stoppedTime");
-
-const headingEl =
-document.getElementById("heading");
-
-const turnEl =
-document.getElementById("turn");
-
-const sourceEl =
-document.getElementById("source");
-
-const frequencyEl =
-document.getElementById("frequency");
-
-const stopListEl =
-document.getElementById("stopList");
-
-const activeStopEl =
-document.getElementById("activeStop");
-
-const downloadCSV =
-document.getElementById("downloadCSV");
-
-const canvas =
-document.getElementById("canvas");
-
-const ctx =
-canvas.getContext("2d");
-
-
-/* =========================================================
-   BOTÓN ÚNICO
-========================================================= */
-
-mainButton.addEventListener(
-"click",
-async function(){
-
-    if(recording){
-
-        finishTracking();
-
-    }
-    else{
-
-        await startTracking();
-
-    }
-
-}
-);
-
-
-/* =========================================================
-   INICIAR
-========================================================= */
+/* ==================== BOTÓN ÚNICO ==================== */
+mainButton.addEventListener('click', async ()=>{
+  if(recording || warming){ finishTracking(); return; }
+  await startTracking();
+});
 
 async function startTracking(){
+  try{
+    await initializeSensors();
+    resetRouteOnly();
+    warming=true;
+    gyroBiasSamples=[];
+    gyroTurnRaw=0; gyroSign=null; gyroCorrection=0; fusedTurn=0;
+    startOrientationYaw=orientationYaw;
+    statusEl.textContent='● CALIBRANDO 2 s — NO MUEVAS EL TELÉFONO';
+    statusEl.className='status waiting';
+    sensorInfo.textContent='Calibración automática de giro. En 2 segundos empieza solo.';
+    mainButton.textContent='■ CANCELAR';
+    mainButton.classList.add('stopButton');
 
-    try{
-
-        await initializeSensors();
-
-        const ready =
-        await waitForHeading();
-
-        if(!ready){
-
-            statusEl.textContent =
-            "● No hay sensor de orientación";
-
-            statusEl.className =
-            "status error";
-
-            return;
-        }
-
-
-        resetRouteOnly();
-
-
-        /*
-        La orientación actual pasa a ser
-        automáticamente nuestro 0°.
-        */
-
-        routeStartHeading =
-        headingSmooth;
-
-
-        routeStartTime =
-        performance.now();
-
-
-        recording =
-        true;
-
-
-        route.push({
-
-            time:0,
-
-            x:0,
-
-            y:0,
-
-            heading:
-            headingSmooth,
-
-            turn:0,
-
-            distance:0,
-
-            energy:0
-
-        });
-
-
-        statusEl.textContent =
-        "● TRACKING ACTIVO";
-
-        statusEl.className =
-        "status ok";
-
-
-        sensorInfo.textContent =
-
-        "Fuente de dirección: " +
-
-        headingSource +
-
-        " · Factor: " +
-
-        DISTANCE_FACTOR;
-
-
-        mainButton.textContent =
-        "■ FINALIZAR TRACKING";
-
-
-        mainButton.classList.add(
-            "stopButton"
-        );
-
-
-        downloadCSV.disabled =
-        true;
-
-
-        draw();
-
-    }
-    catch(error){
-
-        statusEl.textContent =
-        "● " + error.message;
-
-        statusEl.className =
-        "status error";
-
-    }
-
+    warmupTimer=setTimeout(()=>{
+      warmupTimer=null;
+      if(!warming) return;
+      gyroBias = robustMedian(gyroBiasSamples.filter(v=>Math.abs(v)<3));
+      if(!Number.isFinite(gyroBias)) gyroBias=0;
+      gyroBiasEl.textContent=gyroBias.toFixed(2)+'°/s';
+      warming=false;
+      beginRecording();
+    }, AUTO_CAL_MS);
+  }catch(e){
+    statusEl.textContent='● '+e.message;
+    statusEl.className='status error';
+    warming=false;
+  }
 }
 
-
-/* =========================================================
-   FINALIZAR
-========================================================= */
+function beginRecording(){
+  if(compassSmooth===null && orientationYaw===null && !gyroAvailable){
+    statusEl.textContent='● No hay sensor de orientación disponible';
+    statusEl.className='status error';
+    mainButton.textContent='▶ INICIAR TRACKING';
+    mainButton.classList.remove('stopButton');
+    return;
+  }
+  gyroTurnRaw=0; gyroCorrection=0; fusedTurn=0;
+  startOrientationYaw=orientationYaw;
+  routeStartTime=performance.now();
+  recording=true;
+  route.push({time:0,x:0,y:0,turn:0,distance:0,step:0,speed:0,energy:0,heading:compassSmooth??orientationYaw??0,source:getSourceLabel()});
+  statusEl.textContent='● TRACKING ACTIVO'; statusEl.className='status ok';
+  sensorInfo.textContent='Dirección: '+getSourceLabel()+' · calibración automática completada.';
+  mainButton.textContent='■ FINALIZAR TRACKING';
+  downloadCSV.disabled=true;
+  draw();
+}
 
 function finishTracking(){
-
-    if(activeStop){
-
-        finishActiveStop();
-
-    }
-
-
-    recording =
-    false;
-
-
-    statusEl.textContent =
-
-    "● FINALIZADO — " +
-
-    totalDistance.toFixed(1) +
-
-    " m";
-
-
-    statusEl.className =
-    "status waiting";
-
-
-    mainButton.textContent =
-    "▶ INICIAR NUEVO TRACKING";
-
-
-    mainButton.classList.remove(
-        "stopButton"
-    );
-
-
-    downloadCSV.disabled =
-    route.length === 0;
-
-
-    draw();
-
+  if(warmupTimer){clearTimeout(warmupTimer);warmupTimer=null;}
+  warming=false;
+  if(activeStop && recording) finishActiveStop();
+  recording=false;
+  mainButton.textContent='▶ INICIAR NUEVO TRACKING'; mainButton.classList.remove('stopButton');
+  statusEl.textContent='● FINALIZADO — '+totalDistance.toFixed(1)+' m'; statusEl.className='status waiting';
+  downloadCSV.disabled=route.length===0;
+  draw();
 }
 
-
-/* =========================================================
-   SENSORES
-========================================================= */
-
+/* ==================== PERMISOS ==================== */
 async function initializeSensors(){
-
-    if(sensorsInitialized){
-
-        return;
-
-    }
-
-
-    /*
-    iPhone necesita que estos permisos
-    se pidan dentro del toque del usuario.
-    */
-
-    if(
-        typeof DeviceMotionEvent !== "undefined" &&
-        typeof DeviceMotionEvent.requestPermission === "function"
-    ){
-
-        const motionPermission =
-        await DeviceMotionEvent.requestPermission();
-
-
-        if(
-            motionPermission !== "granted"
-        ){
-
-            throw new Error(
-                "Permiso de movimiento rechazado"
-            );
-
-        }
-
-    }
-
-
-    if(
-        typeof DeviceOrientationEvent !== "undefined" &&
-        typeof DeviceOrientationEvent.requestPermission === "function"
-    ){
-
-        const orientationPermission =
-        await DeviceOrientationEvent.requestPermission();
-
-
-        if(
-            orientationPermission !== "granted"
-        ){
-
-            throw new Error(
-                "Permiso de orientación rechazado"
-            );
-
-        }
-
-    }
-
-
-    window.addEventListener(
-        "deviceorientation",
-        orientationHandler
-    );
-
-
-    window.addEventListener(
-        "devicemotion",
-        motionHandler
-    );
-
-
-    sensorsInitialized =
-    true;
-
+  if(sensorsInitialized) return;
+  if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPermission==='function'){
+    const r=await DeviceMotionEvent.requestPermission(); if(r!=='granted') throw new Error('Permiso de movimiento rechazado');
+  }
+  if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
+    const r=await DeviceOrientationEvent.requestPermission(); if(r!=='granted') throw new Error('Permiso de orientación rechazado');
+  }
+  window.addEventListener('deviceorientation',orientationHandler);
+  window.addEventListener('devicemotion',motionHandler);
+  sensorsInitialized=true;
 }
 
-
-/* =========================================================
-   ESPERAR HEADING
-========================================================= */
-
-function waitForHeading(){
-
-    return new Promise(
-        function(resolve){
-
-            const start =
-            performance.now();
-
-
-            const timer =
-            setInterval(
-                function(){
-
-                    if(
-                        headingSmooth !== null
-                    ){
-
-                        clearInterval(timer);
-
-                        resolve(true);
-
-                        return;
-
-                    }
-
-
-                    if(
-                        performance.now() -
-                        start >
-                        1800
-                    ){
-
-                        clearInterval(timer);
-
-                        resolve(false);
-
-                    }
-
-                },
-                50
-            );
-
-        }
-    );
-
+/* ==================== ORIENTACIÓN ==================== */
+function orientationHandler(e){
+  // Guardamos alpha SIEMPRE para detectar automáticamente el signo del gyro.
+  if(e.alpha!==null && e.alpha!==undefined && Number.isFinite(e.alpha)){
+    orientationYaw=normalizeDegrees(360-e.alpha);
+  }
+  let h=null;
+  if(e.webkitCompassHeading!==undefined && e.webkitCompassHeading!==null && Number.isFinite(e.webkitCompassHeading)){
+    h=e.webkitCompassHeading;
+    if(e.webkitCompassAccuracy!==undefined && Number.isFinite(e.webkitCompassAccuracy)) compassAccuracy=e.webkitCompassAccuracy;
+  }else if(orientationYaw!==null){ h=orientationYaw; }
+  if(h===null) return;
+  compassHeading=h;
+  if(compassSmooth===null) compassSmooth=h;
+  else compassSmooth=normalizeDegrees(compassSmooth+shortestAngle(compassSmooth,h)*0.12);
+  headingEl.textContent=compassSmooth.toFixed(1);
 }
 
+/* ==================== MOVIMIENTO + GYRO ==================== */
+function motionHandler(e){
+  const now=performance.now();
+  sampleCounter++;
+  if(now-frequencyStart>=1000){frequencyEl.textContent=sampleCounter;sampleCounter=0;frequencyStart=now;}
+  if(lastMotionTime===null){lastMotionTime=now;return;}
+  let dt=(now-lastMotionTime)/1000; lastMotionTime=now; if(dt>0.1)dt=0.1;
 
-/* =========================================================
-   ORIENTACIÓN
-========================================================= */
+  const a=e.acceleration||{}; const ax=a.x||0, ay=a.y||0, az=a.z||0;
+  const magnitude=Math.sqrt(ax*ax+ay*ay+az*az);
+  filteredEnergy=filteredEnergy*0.75+magnitude*0.25;
+  let energy=Math.max(0,filteredEnergy-MOVEMENT_THRESHOLD);
 
-function orientationHandler(event){
+  const rr=e.rotationRate;
+  let gyroRate=null;
+  if(rr && rr.alpha!==null && rr.alpha!==undefined && Number.isFinite(rr.alpha)){
+    gyroAvailable=true; gyroRate=rr.alpha;
+    if(warming && Math.abs(gyroRate)<3) gyroBiasSamples.push(gyroRate);
+  }
 
-    let heading =
-    null;
+  if(!recording) return;
 
+  // 1) GIRO: gyro para corto plazo, brújula/alpha sólo como referencia lenta.
+  let compassTurn=null;
+  if(startOrientationYaw!==null && orientationYaw!==null) compassTurn=shortestAngle(startOrientationYaw,orientationYaw);
 
-    /*
-    iPHONE / SAFARI
-    */
+  if(gyroAvailable && gyroRate!==null){
+    let correctedRate=gyroRate-gyroBias;
+    if(Math.abs(correctedRate)<GYRO_DEADBAND_DPS) correctedRate=0;
+    correctedRate=Math.max(-GYRO_MAX_DPS,Math.min(GYRO_MAX_DPS,correctedRate));
+    gyroTurnRaw+=correctedRate*dt;
 
-    if(
-        event.webkitCompassHeading !== undefined &&
-        event.webkitCompassHeading !== null &&
-        !isNaN(event.webkitCompassHeading)
-    ){
-
-        heading =
-        event.webkitCompassHeading;
-
-        headingSource =
-        "COMPASS";
-
+    // Detecta automáticamente si el eje del dispositivo viene invertido.
+    if(gyroSign===null && compassTurn!==null && Math.abs(gyroTurnRaw)>15 && Math.abs(compassTurn)>10){
+      const ePlus=Math.abs(shortestAngle(normalizeDegrees(gyroTurnRaw),normalizeDegrees(compassTurn)));
+      const eMinus=Math.abs(shortestAngle(normalizeDegrees(-gyroTurnRaw),normalizeDegrees(compassTurn)));
+      gyroSign=ePlus<=eMinus?1:-1;
     }
+    const signedGyro=gyroTurnRaw*(gyroSign??1);
 
-
-    /*
-    ANDROID
-    */
-
-    else if(
-        event.alpha !== undefined &&
-        event.alpha !== null &&
-        !isNaN(event.alpha)
-    ){
-
-        heading =
-        normalizeDegrees(
-            360 -
-            event.alpha
-        );
-
-        headingSource =
-        "ALPHA";
-
+    // Corrección MUY lenta y sólo cuando la referencia externa no contradice al gyro.
+    if(compassTurn!==null){
+      const err=shortestAngle(normalizeDegrees(signedGyro+gyroCorrection),normalizeDegrees(compassTurn));
+      const compassTrusted = (compassAccuracy===null || compassAccuracy<0 || compassAccuracy<=25);
+      if(compassTrusted && Math.abs(err)<=COMPASS_CORRECTION_MAX_ERROR){
+        gyroCorrection += err*COMPASS_CORRECTION_GAIN;
+      }
     }
+    fusedTurn=signedGyro+gyroCorrection;
+    headingSource='GYRO-HYBRID';
+  }else if(compassTurn!==null){
+    fusedTurn=compassTurn;
+    headingSource='ORIENTATION';
+  }else if(compassSmooth!==null){
+    // Último fallback: relativo a la primera dirección registrada.
+    if(route.length===1) route[0]._startCompass=compassSmooth;
+    const base=route[0]?._startCompass ?? compassSmooth;
+    fusedTurn=shortestAngle(base,compassSmooth);
+    headingSource='COMPASS';
+  }else return;
 
+  turnEl.textContent=wrapSigned(fusedTurn).toFixed(1);
+  sourceEl.textContent=getSourceLabel();
 
-    if(
-        heading === null
-    ){
+  // 2) DISTANCIA: misma calibración, pero velocidad suavizada y con límite físico.
+  let rawSpeed = energy>=MOVE_ENERGY_GATE ? energy*DISTANCE_FACTOR : 0;
+  rawSpeed=Math.min(MAX_CART_SPEED,rawSpeed);
+  speedFiltered = speedFiltered*(1-SPEED_SMOOTHING)+rawSpeed*SPEED_SMOOTHING;
+  if(rawSpeed===0 && speedFiltered<0.03) speedFiltered=0;
+  const step=speedFiltered*dt;
 
-        return;
+  const angle=fusedTurn*Math.PI/180;
+  x+=Math.sin(angle)*step; y+=Math.cos(angle)*step; totalDistance+=step;
+  const elapsed=(now-routeStartTime)/1000;
+  timeEl.textContent=elapsed.toFixed(0); distanceEl.textContent=totalDistance.toFixed(1); speedEl.textContent=speedFiltered.toFixed(2);
 
-    }
-
-
-    /*
-    Filtro circular.
-    */
-
-    if(
-        headingSmooth === null
-    ){
-
-        headingSmooth =
-        heading;
-
-    }
-    else{
-
-        const diff =
-        shortestAngle(
-            headingSmooth,
-            heading
-        );
-
-
-        headingSmooth =
-        normalizeDegrees(
-
-            headingSmooth +
-
-            diff *
-            0.18
-
-        );
-
-    }
-
-
-    headingEl.textContent =
-    headingSmooth.toFixed(1);
-
-
-    sourceEl.textContent =
-    headingSource;
-
-
-    if(
-        recording &&
-        routeStartHeading !== null
-    ){
-
-        const turn =
-        shortestAngle(
-            routeStartHeading,
-            headingSmooth
-        );
-
-
-        turnEl.textContent =
-        turn.toFixed(1);
-
-    }
-
+  route.push({time:elapsed,x,y,turn:fusedTurn,distance:totalDistance,step,speed:speedFiltered,energy,heading:compassSmooth??orientationYaw??0,source:getSourceLabel(),gyro_rate:gyroRate??'',gyro_bias:gyroBias,gyro_sign:gyroSign??'',gyro_correction:gyroCorrection,compass_accuracy:compassAccuracy??'',ax,ay,az});
+  updateStops(energy,elapsed,now);
+  if(now-lastDraw>100){draw();lastDraw=now;}
 }
 
-
-/* =========================================================
-   MOVIMIENTO
-========================================================= */
-
-function motionHandler(event){
-
-    const now =
-    performance.now();
-
-
-    sampleCounter++;
-
-
-    if(
-        now -
-        frequencyStart >=
-        1000
-    ){
-
-        frequencyEl.textContent =
-        sampleCounter;
-
-
-        sampleCounter =
-        0;
-
-
-        frequencyStart =
-        now;
-
-    }
-
-
-    if(
-        lastMotionTime === null
-    ){
-
-        lastMotionTime =
-        now;
-
-        return;
-
-    }
-
-
-    let dt =
-
-    (
-        now -
-        lastMotionTime
-    ) /
-
-    1000;
-
-
-    lastMotionTime =
-    now;
-
-
-    if(dt > 0.1){
-
-        dt = 0.1;
-
-    }
-
-
-    const acceleration =
-    event.acceleration;
-
-
-    if(!acceleration){
-
-        return;
-
-    }
-
-
-    const ax =
-    acceleration.x || 0;
-
-
-    const ay =
-    acceleration.y || 0;
-
-
-    const az =
-    acceleration.z || 0;
-
-
-    const magnitude =
-
-    Math.sqrt(
-
-        ax*ax +
-
-        ay*ay +
-
-        az*az
-
-    );
-
-
-    filteredEnergy =
-
-    filteredEnergy *
-    0.75 +
-
-    magnitude *
-    0.25;
-
-
-    let energy =
-
-    filteredEnergy -
-
-    MOVEMENT_THRESHOLD;
-
-
-    if(energy < 0){
-
-        energy = 0;
-
-    }
-
-
-    if(!recording){
-
-        return;
-
-    }
-
-
-    if(
-        headingSmooth === null ||
-        routeStartHeading === null
-    ){
-
-        return;
-
-    }
-
-
-    /*
-    DISTANCIA.
-
-    Ya NO hay calibración del usuario.
-    */
-
-    let step =
-
-    energy *
-
-    dt *
-
-    DISTANCE_FACTOR;
-
-
-    /*
-    Elimina picos extremos.
-    */
-
-    if(step > 0.20){
-
-        step = 0.20;
-
-    }
-
-
-    const turn =
-
-    shortestAngle(
-
-        routeStartHeading,
-
-        headingSmooth
-
-    );
-
-
-    /*
-    En nuestro plano relativo:
-
-    0° = adelante
-    +90° = derecha
-    -90° = izquierda
-    */
-
-    const angle =
-
-    turn *
-
-    Math.PI /
-
-    180;
-
-
-    const dx =
-
-    Math.sin(angle) *
-
-    step;
-
-
-    const dy =
-
-    Math.cos(angle) *
-
-    step;
-
-
-    x += dx;
-
-    y += dy;
-
-
-    totalDistance +=
-    step;
-
-
-    const elapsed =
-
-    (
-        now -
-        routeStartTime
-    ) /
-
-    1000;
-
-
-    timeEl.textContent =
-    elapsed.toFixed(0);
-
-
-    distanceEl.textContent =
-    totalDistance.toFixed(1);
-
-
-    route.push({
-
-        time:
-        elapsed,
-
-        x:x,
-
-        y:y,
-
-        heading:
-        headingSmooth,
-
-        turn:turn,
-
-        distance:
-        totalDistance,
-
-        step:step,
-
-        energy:energy,
-
-        ax:ax,
-
-        ay:ay,
-
-        az:az
-
-    });
-
-
-    updateStops(
-        energy,
-        elapsed,
-        now
-    );
-
-
-    /*
-    Dibujamos ~10 veces por segundo,
-    no 60.
-    */
-
-    if(
-        now -
-        lastDraw >
-        100
-    ){
-
-        draw();
-
-        lastDraw =
-        now;
-
-    }
-
+function getSourceLabel(){
+  if(gyroAvailable) return gyroSign===null?'GYRO (aprendiendo signo)':'GYRO-HYBRID';
+  if(orientationYaw!==null) return 'ORIENTATION';
+  return compassSmooth!==null?'COMPASS':'---';
 }
 
-
-/* =========================================================
-   PARADAS
-========================================================= */
-
-function updateStops(
-energy,
-elapsed,
-now
-){
-
-    /*
-    PARADA YA CONFIRMADA.
-    */
-
-    if(activeStop){
-
-        const dx =
-        x -
-        activeStop.x;
-
-
-        const dy =
-        y -
-        activeStop.y;
-
-
-        const displacement =
-
-        Math.sqrt(
-            dx*dx +
-            dy*dy
-        );
-
-
-        activeStopEl.innerHTML =
-
-        "🛑 PARADA " +
-
-        activeStop.number +
-
-        " activa · " +
-
-        displacement.toFixed(1) +
-
-        " / 2.0 m";
-
-
-        /*
-        Solamente termina al abandonar
-        realmente la zona de 2 metros.
-        */
-
-        if(
-            displacement >
-            STOP_ZONE_RADIUS_METERS
-        ){
-
-            finishActiveStop();
-
-        }
-
-
-        return;
-
-    }
-
-
-    /*
-    NO HAY CANDIDATO.
-    */
-
-    if(!stopCandidate){
-
-        if(energy === 0){
-
-            stopCandidate = {
-
-                startTime:
-                now,
-
-                elapsed:
-                elapsed,
-
-                distance:
-                totalDistance,
-
-                x:x,
-
-                y:y
-
-            };
-
-        }
-
-
-        return;
-
-    }
-
-
-    /*
-    YA HAY CANDIDATO.
-    */
-
-    const dx =
-    x -
-    stopCandidate.x;
-
-
-    const dy =
-    y -
-    stopCandidate.y;
-
-
-    const displacement =
-
-    Math.sqrt(
-        dx*dx +
-        dy*dy
-    );
-
-
-    /*
-    Antes de confirmarse,
-    toleramos hasta 75 cm.
-    */
-
-    if(
-        displacement >
-        STOP_CONFIRM_RADIUS_METERS
-    ){
-
-        stopCandidate =
-        null;
-
-        return;
-
-    }
-
-
-    const duration =
-
-    (
-        now -
-        stopCandidate.startTime
-    ) /
-
-    1000;
-
-
-    if(
-        duration >=
-        STOP_CONFIRM_SECONDS
-    ){
-
-        activeStop = {
-
-            number:
-            stops.length + 1,
-
-            startElapsed:
-            stopCandidate.elapsed,
-
-            startDistance:
-            stopCandidate.distance,
-
-            x:
-            stopCandidate.x,
-
-            y:
-            stopCandidate.y
-
-        };
-
-
-        stopCandidate =
-        null;
-
-
-        activeStopEl.innerHTML =
-
-        "🛑 PARADA " +
-
-        activeStop.number +
-
-        " activa";
-
-    }
-
+/* ==================== PARADAS ==================== */
+function updateStops(energy,elapsed,now){
+  if(activeStop){
+    const d=Math.hypot(x-activeStop.x,y-activeStop.y);
+    activeStopEl.textContent='🛑 PARADA '+activeStop.number+' activa · '+d.toFixed(1)+' / 2.0 m';
+    if(d>STOP_ZONE_RADIUS_METERS) finishActiveStop();
+    return;
+  }
+  if(!stopCandidate){
+    if(energy===0) stopCandidate={startTime:now,elapsed,distance:totalDistance,x,y};
+    return;
+  }
+  const d=Math.hypot(x-stopCandidate.x,y-stopCandidate.y);
+  if(d>STOP_CONFIRM_RADIUS_METERS){stopCandidate=null;return;}
+  if((now-stopCandidate.startTime)/1000>=STOP_CONFIRM_SECONDS){
+    activeStop={number:stops.length+1,startElapsed:stopCandidate.elapsed,startDistance:stopCandidate.distance,x:stopCandidate.x,y:stopCandidate.y};
+    stopCandidate=null; activeStopEl.textContent='🛑 PARADA '+activeStop.number+' activa';
+  }
 }
-
-
-/* =========================================================
-   FINALIZAR PARADA
-========================================================= */
 
 function finishActiveStop(){
-
-    if(!activeStop){
-
-        return;
-
-    }
-
-
-    const elapsed =
-
-    (
-        performance.now() -
-        routeStartTime
-    ) /
-
-    1000;
-
-
-    const duration =
-
-    elapsed -
-
-    activeStop.startElapsed;
-
-
-    stops.push({
-
-        number:
-        activeStop.number,
-
-        start:
-        activeStop.startElapsed,
-
-        duration:
-        duration,
-
-        distance:
-        activeStop.startDistance,
-
-        x:
-        activeStop.x,
-
-        y:
-        activeStop.y
-
-    });
-
-
-    stoppedSeconds +=
-    duration;
-
-
-    activeStop =
-    null;
-
-
-    activeStopEl.textContent =
-    "Sin parada activa.";
-
-
-    refreshStops();
-
+  if(!activeStop)return;
+  const elapsed=(performance.now()-routeStartTime)/1000;
+  const stop={number:activeStop.number,start:activeStop.startElapsed,duration:elapsed-activeStop.startElapsed,distance:activeStop.startDistance,x:activeStop.x,y:activeStop.y};
+  stops.push(stop); stoppedSeconds+=stop.duration; activeStop=null; activeStopEl.textContent='Sin parada activa.';
+  assignStopToZone(stop); refreshStops(); refreshZones();
 }
 
-
-/* =========================================================
-   LISTA PARADAS
-========================================================= */
+function assignStopToZone(stop){
+  let best=null,bestD=Infinity;
+  for(const z of zones){const d=Math.hypot(stop.x-z.x,stop.y-z.y);if(d<bestD){bestD=d;best=z;}}
+  if(best && bestD<=AUTO_ZONE_RADIUS_METERS){
+    const n=best.visits; best.x=(best.x*n+stop.x)/(n+1); best.y=(best.y*n+stop.y)/(n+1); best.visits++; best.dwell+=stop.duration; stop.zone=best.id;
+  }else{
+    const z={id:'Z'+(zones.length+1),x:stop.x,y:stop.y,visits:1,dwell:stop.duration}; zones.push(z); stop.zone=z.id;
+  }
+}
 
 function refreshStops(){
-
-    stopCountEl.textContent =
-    stops.length;
-
-
-    stoppedTimeEl.textContent =
-    stoppedSeconds.toFixed(0);
-
-
-    if(
-        stops.length === 0
-    ){
-
-        stopListEl.innerHTML =
-
-        '<div class="note">' +
-
-        'Todavía no hay paradas.' +
-
-        '</div>';
-
-
-        return;
-
-    }
-
-
-    let html =
-    "";
-
-
-    stops.forEach(
-        function(stop){
-
-            html +=
-
-            '<div class="stopRow">' +
-
-            '<div>' +
-
-            '<span class="badge">' +
-
-            stop.number +
-
-            '</span>' +
-
-            '</div>' +
-
-            '<div>' +
-
-            clock(
-                stop.start
-            ) +
-
-            '</div>' +
-
-            '<div><strong>' +
-
-            stop.duration.toFixed(1) +
-
-            ' s</strong></div>' +
-
-            '</div>';
-
-        }
-    );
-
-
-    stopListEl.innerHTML =
-    html;
-
+  stopCountEl.textContent=stops.length; stoppedTimeEl.textContent=stoppedSeconds.toFixed(0);
+  if(!stops.length){stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';return;}
+  stopListEl.innerHTML=stops.map(s=>`<div class="row"><div><span class="badge">${s.number}</span></div><div>${clock(s.start)} · <span class="pill">${s.zone||'—'}</span></div><div><strong>${s.duration.toFixed(1)} s</strong></div></div>`).join('');
 }
 
+function refreshZones(){
+  if(!zones.length){zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';return;}
+  zoneListEl.innerHTML=zones.map(z=>`<div class="zoneRow"><div><strong>${z.id}</strong></div><div>${z.visits} parada${z.visits===1?'':'s'} · (${z.x.toFixed(1)}, ${z.y.toFixed(1)}) m</div><div><strong>${z.dwell.toFixed(0)} s</strong></div></div>`).join('');
+}
 
-/* =========================================================
-   AUTOZOOM
-========================================================= */
-
+/* ==================== DIBUJO ==================== */
 function draw(){
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    /*
-    Fondo.
-    */
-
-    ctx.fillStyle =
-    "#fafafa";
-
-
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    let points =
-
-    route.length ?
-
-    route :
-
-    [{x:0,y:0}];
-
-
-    let minX =
-    Math.min(
-        ...points.map(p=>p.x),
-        0
-    );
-
-
-    let maxX =
-    Math.max(
-        ...points.map(p=>p.x),
-        0
-    );
-
-
-    let minY =
-    Math.min(
-        ...points.map(p=>p.y),
-        0
-    );
-
-
-    let maxY =
-    Math.max(
-        ...points.map(p=>p.y),
-        0
-    );
-
-
-    /*
-    Mínimo visual de 12 × 12 m.
-    */
-
-    const minimumRange =
-    12;
-
-
-    let rangeX =
-    Math.max(
-        minimumRange,
-        maxX -
-        minX
-    );
-
-
-    let rangeY =
-    Math.max(
-        minimumRange,
-        maxY -
-        minY
-    );
-
-
-    const centerX =
-    (
-        minX +
-        maxX
-    ) /
-    2;
-
-
-    const centerY =
-    (
-        minY +
-        maxY
-    ) /
-    2;
-
-
-    minX =
-    centerX -
-    rangeX /
-    2;
-
-
-    maxX =
-    centerX +
-    rangeX /
-    2;
-
-
-    minY =
-    centerY -
-    rangeY /
-    2;
-
-
-    maxY =
-    centerY +
-    rangeY /
-    2;
-
-
-    const margin =
-    45;
-
-
-    const scale =
-
-    Math.min(
-
-        (
-            canvas.width -
-            margin*2
-        ) /
-        rangeX,
-
-        (
-            canvas.height -
-            margin*2
-        ) /
-        rangeY
-
-    );
-
-
-    function sx(mx){
-
-        return(
-
-            margin +
-
-            (
-                mx -
-                minX
-            ) *
-
-            scale
-
-        );
-
-    }
-
-
-    function sy(my){
-
-        return(
-
-            canvas.height -
-
-            margin -
-
-            (
-                my -
-                minY
-            ) *
-
-            scale
-
-        );
-
-    }
-
-
-    /*
-    GRILLA CADA 2 METROS.
-    */
-
-    ctx.strokeStyle =
-    "#e5e5e5";
-
-
-    ctx.lineWidth =
-    1;
-
-
-    const gridSize =
-    2;
-
-
-    let gx =
-
-    Math.floor(
-        minX /
-        gridSize
-    ) *
-
-    gridSize;
-
-
-    while(gx <= maxX){
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            sx(gx),
-            margin
-        );
-
-        ctx.lineTo(
-            sx(gx),
-            canvas.height -
-            margin
-        );
-
-        ctx.stroke();
-
-        gx +=
-        gridSize;
-
-    }
-
-
-    let gy =
-
-    Math.floor(
-        minY /
-        gridSize
-    ) *
-
-    gridSize;
-
-
-    while(gy <= maxY){
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            margin,
-            sy(gy)
-        );
-
-        ctx.lineTo(
-            canvas.width -
-            margin,
-            sy(gy)
-        );
-
-        ctx.stroke();
-
-        gy +=
-        gridSize;
-
-    }
-
-
-    /*
-    TRAZADO
-    */
-
-    if(route.length > 1){
-
-        ctx.strokeStyle =
-        "#15965f";
-
-
-        ctx.lineWidth =
-        7;
-
-
-        ctx.lineCap =
-        "round";
-
-
-        ctx.lineJoin =
-        "round";
-
-
-        ctx.beginPath();
-
-
-        ctx.moveTo(
-
-            sx(
-                route[0].x
-            ),
-
-            sy(
-                route[0].y
-            )
-
-        );
-
-
-        for(
-            let i=1;
-            i<route.length;
-            i++
-        ){
-
-            ctx.lineTo(
-
-                sx(
-                    route[i].x
-                ),
-
-                sy(
-                    route[i].y
-                )
-
-            );
-
-        }
-
-
-        ctx.stroke();
-
-    }
-
-
-    /*
-    INICIO
-    */
-
-    ctx.fillStyle =
-    "#dc3545";
-
-
-    ctx.beginPath();
-
-
-    ctx.arc(
-        sx(0),
-        sy(0),
-        8,
-        0,
-        Math.PI*2
-    );
-
-
-    ctx.fill();
-
-
-    ctx.fillStyle =
-    "#333";
-
-
-    ctx.font =
-    "14px sans-serif";
-
-
-    ctx.fillText(
-
-        "INICIO",
-
-        sx(0) + 10,
-
-        sy(0) - 8
-
-    );
-
-
-    /*
-    PARADAS
-    */
-
-    stops.forEach(
-        function(stop){
-
-            const radius =
-
-            Math.min(
-
-                25,
-
-                9 +
-
-                stop.duration *
-                0.20
-
-            );
-
-
-            ctx.fillStyle =
-            "rgba(220,53,69,.88)";
-
-
-            ctx.beginPath();
-
-
-            ctx.arc(
-
-                sx(stop.x),
-
-                sy(stop.y),
-
-                radius,
-
-                0,
-
-                Math.PI*2
-
-            );
-
-
-            ctx.fill();
-
-
-            ctx.fillStyle =
-            "white";
-
-
-            ctx.textAlign =
-            "center";
-
-
-            ctx.textBaseline =
-            "middle";
-
-
-            ctx.font =
-            "bold 15px sans-serif";
-
-
-            ctx.fillText(
-
-                stop.number,
-
-                sx(stop.x),
-
-                sy(stop.y)
-
-            );
-
-
-            ctx.textAlign =
-            "left";
-
-
-            ctx.textBaseline =
-            "alphabetic";
-
-
-            ctx.fillStyle =
-            "#111";
-
-
-            ctx.fillText(
-
-                stop.duration.toFixed(0) +
-
-                "s",
-
-                sx(stop.x) +
-
-                radius +
-
-                4,
-
-                sy(stop.y)
-
-            );
-
-        }
-    );
-
-
-    /*
-    POSICIÓN ACTUAL
-    */
-
-    if(route.length){
-
-        const last =
-        route[
-            route.length -
-            1
-        ];
-
-
-        ctx.fillStyle =
-        "#198754";
-
-
-        ctx.beginPath();
-
-
-        ctx.arc(
-
-            sx(last.x),
-
-            sy(last.y),
-
-            7,
-
-            0,
-
-            Math.PI*2
-
-        );
-
-
-        ctx.fill();
-
-    }
-
+  ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fafafa';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const pts=route.length?route:[{x:0,y:0}];
+  let minX=Math.min(...pts.map(p=>p.x),0),maxX=Math.max(...pts.map(p=>p.x),0),minY=Math.min(...pts.map(p=>p.y),0),maxY=Math.max(...pts.map(p=>p.y),0);
+  let rangeX=Math.max(12,maxX-minX),rangeY=Math.max(12,maxY-minY);const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+  minX=cx-rangeX/2;maxX=cx+rangeX/2;minY=cy-rangeY/2;maxY=cy+rangeY/2;
+  const m=45,scale=Math.min((canvas.width-2*m)/rangeX,(canvas.height-2*m)/rangeY);
+  const sx=v=>m+(v-minX)*scale, sy=v=>canvas.height-m-(v-minY)*scale;
+  ctx.strokeStyle='#e5e5e5';ctx.lineWidth=1;
+  for(let gx=Math.floor(minX/2)*2;gx<=maxX;gx+=2){ctx.beginPath();ctx.moveTo(sx(gx),m);ctx.lineTo(sx(gx),canvas.height-m);ctx.stroke();}
+  for(let gy=Math.floor(minY/2)*2;gy<=maxY;gy+=2){ctx.beginPath();ctx.moveTo(m,sy(gy));ctx.lineTo(canvas.width-m,sy(gy));ctx.stroke();}
+  if(route.length>1){ctx.strokeStyle='#15965f';ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(sx(route[0].x),sy(route[0].y));for(let i=1;i<route.length;i++)ctx.lineTo(sx(route[i].x),sy(route[i].y));ctx.stroke();}
+  ctx.fillStyle='#dc3545';ctx.beginPath();ctx.arc(sx(0),sy(0),8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#333';ctx.font='14px sans-serif';ctx.fillText('INICIO',sx(0)+10,sy(0)-8);
+  stops.forEach(s=>{const r=Math.min(25,9+s.duration*.2);ctx.fillStyle='rgba(220,53,69,.88)';ctx.beginPath();ctx.arc(sx(s.x),sy(s.y),r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 15px sans-serif';ctx.fillText(s.number,sx(s.x),sy(s.y));ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#111';ctx.fillText((s.zone||'')+' '+s.duration.toFixed(0)+'s',sx(s.x)+r+4,sy(s.y));});
+  if(route.length){const p=route[route.length-1];ctx.fillStyle='#198754';ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),7,0,Math.PI*2);ctx.fill();}
 }
 
-
-/* =========================================================
-   RESET
-========================================================= */
-
+/* ==================== RESET ==================== */
 function resetRouteOnly(){
-
-    recording =
-    false;
-
-
-    route =
-    [];
-
-
-    stops =
-    [];
-
-
-    stopCandidate =
-    null;
-
-
-    activeStop =
-    null;
-
-
-    stoppedSeconds =
-    0;
-
-
-    totalDistance =
-    0;
-
-
-    x =
-    0;
-
-
-    y =
-    0;
-
-
-    routeStartHeading =
-    null;
-
-
-    routeStartTime =
-    null;
-
-
-    timeEl.textContent =
-    "0";
-
-
-    distanceEl.textContent =
-    "0.0";
-
-
-    turnEl.textContent =
-    "---";
-
-
-    stopCountEl.textContent =
-    "0";
-
-
-    stoppedTimeEl.textContent =
-    "0";
-
-
-    activeStopEl.textContent =
-    "Sin parada activa.";
-
-
-    stopListEl.innerHTML =
-
-    '<div class="note">' +
-
-    'Todavía no hay paradas.' +
-
-    '</div>';
-
-
-    draw();
-
+  recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;routeStartTime=null;speedFiltered=0;gyroTurnRaw=0;gyroCorrection=0;fusedTurn=0;
+  timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';speedEl.textContent='0.00';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();
 }
 
-
-/* =========================================================
-   BOTÓN BORRAR
-========================================================= */
-
-document
-.getElementById(
-"resetButton"
-)
-.addEventListener(
-"click",
-function(){
-
-    resetRouteOnly();
-
-
-    statusEl.textContent =
-    "● Listo para comenzar";
-
-
-    statusEl.className =
-    "status waiting";
-
-
-    mainButton.textContent =
-    "▶ INICIAR TRACKING";
-
-
-    mainButton.classList.remove(
-        "stopButton"
-    );
-
-
-    downloadCSV.disabled =
-    true;
-
-}
-);
-
-
-/* =========================================================
-   CSV
-========================================================= */
-
-downloadCSV.addEventListener(
-"click",
-function(){
-
-    if(
-        route.length ===
-        0
-    ){
-
-        return;
-
-    }
-
-
-    let csv =
-
-    "time,heading_source,heading,turn,x_m,y_m,distance_step,total_distance,energy,ax,ay,az\n";
-
-
-    route.forEach(
-        function(row){
-
-            csv += [
-
-                row.time !== undefined ?
-                row.time.toFixed(3) :
-                "",
-
-                headingSource || "",
-
-                row.heading !== undefined ?
-                Number(row.heading).toFixed(3) :
-                "",
-
-                row.turn !== undefined ?
-                Number(row.turn).toFixed(3) :
-                "",
-
-                row.x !== undefined ?
-                Number(row.x).toFixed(4) :
-                "",
-
-                row.y !== undefined ?
-                Number(row.y).toFixed(4) :
-                "",
-
-                row.step !== undefined ?
-                Number(row.step).toFixed(5) :
-                "0",
-
-                row.distance !== undefined ?
-                Number(row.distance).toFixed(3) :
-                "",
-
-                row.energy !== undefined ?
-                Number(row.energy).toFixed(5) :
-                "",
-
-                row.ax !== undefined ?
-                Number(row.ax).toFixed(4) :
-                "",
-
-                row.ay !== undefined ?
-                Number(row.ay).toFixed(4) :
-                "",
-
-                row.az !== undefined ?
-                Number(row.az).toFixed(4) :
-                ""
-
-            ].join(",") +
-
-            "\n";
-
-        }
-    );
-
-
-    /*
-    Agregamos las paradas
-    como bloque adicional.
-    */
-
-    csv +=
-    "\nSTOP_NUMBER,START_TIME,DURATION,X,Y,DISTANCE\n";
-
-
-    stops.forEach(
-        function(stop){
-
-            csv += [
-
-                stop.number,
-
-                stop.start.toFixed(3),
-
-                stop.duration.toFixed(2),
-
-                stop.x.toFixed(4),
-
-                stop.y.toFixed(4),
-
-                stop.distance.toFixed(3)
-
-            ].join(",") +
-
-            "\n";
-
-        }
-    );
-
-
-    const blob =
-    new Blob(
-
-        [csv],
-
-        {
-            type:
-            "text/csv;charset=utf-8;"
-        }
-
-    );
-
-
-    const url =
-    URL.createObjectURL(
-        blob
-    );
-
-
-    const link =
-    document.createElement(
-        "a"
-    );
-
-
-    link.href =
-    url;
-
-
-    link.download =
-    "tracker-mg-v10-one-tap.csv";
-
-
-    document.body.appendChild(
-        link
-    );
-
-
-    link.click();
-
-
-    document.body.removeChild(
-        link
-    );
-
-
-    URL.revokeObjectURL(
-        url
-    );
-
-}
-);
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function normalizeDegrees(deg){
-
-    return(
-
-        (
-            deg %
-            360
-        ) +
-
-        360
-
-    ) %
-
-    360;
-
-}
-
-
-function shortestAngle(
-from,
-to
-){
-
-    return(
-
-        (
-            to -
-            from +
-            540
-        ) %
-
-        360
-
-    ) -
-
-    180;
-
-}
-
-
-function clock(seconds){
-
-    const m =
-    Math.floor(
-        seconds /
-        60
-    );
-
-
-    const s =
-    Math.floor(
-        seconds %
-        60
-    );
-
-
-    return(
-
-        m +
-
-        ":" +
-
-        String(s)
-        .padStart(
-            2,
-            "0"
-        )
-
-    );
-
-}
-
-
-/*
-Dibujar pantalla inicial.
-*/
+$('resetButton').addEventListener('click',()=>{if(warmupTimer){clearTimeout(warmupTimer);warmupTimer=null;}warming=false;resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stopButton');downloadCSV.disabled=true;});
+
+/* ==================== CSV ==================== */
+downloadCSV.addEventListener('click',()=>{
+  if(!route.length)return;
+  const headers=['time','source','heading','turn','x_m','y_m','distance_step','total_distance','speed','energy','gyro_rate','gyro_bias','gyro_sign','gyro_correction','compass_accuracy','ax','ay','az'];
+  let csv=headers.join(',')+'\n';
+  route.forEach(r=>{csv+=headers.map(k=>{const map={x_m:r.x,y_m:r.y,distance_step:r.step,total_distance:r.distance};const v=(k in map)?map[k]:r[k];return v===undefined||v===null?'':(typeof v==='number'?v.toFixed(5):v);}).join(',')+'\n';});
+  csv+='\nSTOP_NUMBER,ZONE,START_TIME,DURATION,X,Y,DISTANCE\n';
+  stops.forEach(s=>{csv+=[s.number,s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3)].join(',')+'\n';});
+  csv+='\nZONE,VISITS,DWELL_SECONDS,X,Y\n';
+  zones.forEach(z=>{csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4)].join(',')+'\n';});
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tracker-mg-v11.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+});
+
+/* ==================== HELPERS ==================== */
+function normalizeDegrees(d){return((d%360)+360)%360;}
+function shortestAngle(from,to){return((to-from+540)%360)-180;}
+function wrapSigned(d){return((d+180)%360+360)%360-180;}
+function robustMedian(a){if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function clock(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
 
 draw();
-
 </script>
-
 </body>
 </html>
