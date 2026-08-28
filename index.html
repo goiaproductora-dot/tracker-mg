@@ -2,261 +2,615 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V0.6</title>
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+
+<title>Tracker MG V0.7</title>
 
 <style>
+
 body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    margin:0;padding:16px;background:#f2f2f7;color:#111
+    margin:0;
+    padding:16px;
+    background:#f2f2f7;
+    color:#111;
 }
-.container{max-width:760px;margin:auto}
-h1{margin:4px 0}
-h2{margin:4px 0 14px}
-.subtitle{color:#666;margin-bottom:18px}
+
+.container{
+    max-width:760px;
+    margin:auto;
+}
+
+h1{
+    margin:4px 0;
+}
+
+h2{
+    margin:4px 0 14px;
+}
+
+.subtitle{
+    color:#666;
+    margin-bottom:18px;
+}
+
 .card{
-    background:white;border-radius:16px;padding:16px;margin-bottom:14px
+    background:white;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:14px;
 }
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.anchor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.label{font-size:12px;color:#777;margin-bottom:4px}
-.value{font-size:24px;font-weight:650}
-.big{font-size:32px;font-weight:750}
-.status{font-size:18px;font-weight:bold}
-.ok{color:#198754}
-.waiting{color:#d97706}
-.error{color:#dc3545}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.anchor-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.label{
+    font-size:12px;
+    color:#777;
+    margin-bottom:4px;
+}
+
+.value{
+    font-size:23px;
+    font-weight:650;
+}
+
+.big{
+    font-size:32px;
+    font-weight:750;
+}
+
+.status{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.ok{
+    color:#198754;
+}
+
+.waiting{
+    color:#d97706;
+}
+
+.error{
+    color:#dc3545;
+}
 
 button{
-    width:100%;border:none;border-radius:14px;padding:15px;
-    font-size:15px;font-weight:bold;margin-top:8px
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:15px;
+    font-size:15px;
+    font-weight:bold;
+    margin-top:8px;
 }
-button:disabled{background:#aaa!important;color:white}
 
-.blue{background:#007aff;color:white}
-.green{background:#198754;color:white}
-.red{background:#dc3545;color:white}
-.orange{background:#ff9500;color:white}
-.gray{background:#555;color:white}
-.purple{background:#6f42c1;color:white}
-.teal{background:#087f8c;color:white}
+button:disabled{
+    background:#aaa !important;
+    color:white;
+}
+
+.blue{background:#007aff;color:white;}
+.green{background:#198754;color:white;}
+.red{background:#dc3545;color:white;}
+.orange{background:#ff9500;color:white;}
+.gray{background:#555;color:white;}
+.purple{background:#6f42c1;color:white;}
+.teal{background:#087f8c;color:white;}
 
 .anchorButton{
-    background:#ff9500;color:white;
-    min-height:62px
+    background:#ff9500;
+    color:white;
+    min-height:62px;
 }
 
-input,select{
-    width:100%;box-sizing:border-box;font-size:18px;padding:12px;
-    border-radius:10px;border:1px solid #ccc;background:white
+input,
+select{
+    width:100%;
+    box-sizing:border-box;
+    font-size:18px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    background:white;
 }
 
 canvas{
-    width:100%;height:auto;display:block;border:1px solid #ccc;
-    border-radius:12px;background:white
+    width:100%;
+    height:auto;
+    display:block;
+    border:1px solid #ccc;
+    border-radius:12px;
+    background:white;
 }
 
-.note{color:#666;font-size:13px;line-height:1.45;margin-top:9px}
+.note{
+    color:#666;
+    font-size:13px;
+    line-height:1.45;
+    margin-top:9px;
+}
 
 .box-ok{
-    background:#eaf8ef;color:#17713c;padding:11px;border-radius:10px;
-    margin-top:10px;font-weight:bold
+    background:#eaf8ef;
+    color:#17713c;
+    padding:11px;
+    border-radius:10px;
+    margin-top:10px;
+    font-weight:bold;
 }
+
 .box-wait{
-    background:#fff5df;color:#986500;padding:11px;border-radius:10px;
-    margin-top:10px;font-weight:bold
+    background:#fff5df;
+    color:#986500;
+    padding:11px;
+    border-radius:10px;
+    margin-top:10px;
+    font-weight:bold;
 }
 
 .row{
     display:grid;
     grid-template-columns:50px 1fr 1fr;
-    gap:8px;border-top:1px solid #eee;padding:9px 0;font-size:13px
+    gap:8px;
+    border-top:1px solid #eee;
+    padding:9px 0;
+    font-size:13px;
 }
 
 .anchor-row{
     display:grid;
     grid-template-columns:42px 1.5fr 1fr 1fr;
-    gap:6px;border-top:1px solid #eee;padding:9px 0;font-size:12px
+    gap:6px;
+    border-top:1px solid #eee;
+    padding:9px 0;
+    font-size:12px;
 }
 
-.head{font-weight:bold;color:#555}
+.head{
+    font-weight:bold;
+    color:#555;
+}
 
 .badge{
-    display:inline-flex;min-width:28px;height:28px;align-items:center;
-    justify-content:center;border-radius:50%;background:#dc3545;
-    color:white;font-weight:bold
+    display:inline-flex;
+    min-width:28px;
+    height:28px;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#dc3545;
+    color:white;
+    font-weight:bold;
 }
 
-hr{border:none;border-top:1px solid #eee;margin:16px 0}
+hr{
+    border:none;
+    border-top:1px solid #eee;
+    margin:16px 0;
+}
+
+.sensorMode{
+    background:#edf6ff;
+    color:#125e9c;
+    border-radius:10px;
+    padding:10px;
+    font-size:13px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
 </style>
 </head>
 
+
 <body>
+
 <div class="container">
 
-<h1>🛒 Tracker MG V0.6</h1>
+
+<h1>🛒 Tracker MG V0.7</h1>
 
 <div class="subtitle">
-Anclas de corrección + drift + paradas inteligentes
+Relative Heading — mismo criterio iPhone / Android
 </div>
 
 
 <div class="card">
 
-<div class="label">ESTADO GENERAL</div>
+<div class="label">
+ESTADO GENERAL
+</div>
 
-<div id="status" class="status waiting">
+<div
+id="status"
+class="status waiting">
+
 ● Esperando sensores
+
+</div>
+
+<div class="sensorMode">
+
+MODO V0.7:
+orientación relativa mediante ALPHA.
+La brújula magnética NO mueve el trazado.
+
 </div>
 
 </div>
 
 
-<button id="sensorButton" class="blue">
+<button
+id="sensorButton"
+class="blue">
+
 ACTIVAR SENSORES
+
 </button>
 
 
+<!-- SENSORES -->
+
 <div class="card">
+
+<h2>Sensores</h2>
 
 <div class="grid">
 
-<div>
-<div class="label">ORIENTACIÓN</div>
-<div class="value"><span id="heading">---</span>°</div>
-</div>
 
 <div>
-<div class="label">CORRECCIÓN ANGULAR</div>
-<div class="value"><span id="headingBias">0.0</span>°</div>
+
+<div class="label">
+ALPHA RELATIVO
 </div>
+
+<div class="value">
+
+<span id="relativeHeading">
+---
+</span>°
+
+</div>
+
+</div>
+
 
 <div>
-<div class="label">MOVIMIENTO</div>
-<div id="movementStatus" class="value">---</div>
+
+<div class="label">
+GIRO DESDE INICIO
 </div>
+
+<div class="value">
+
+<span id="routeTurn">
+---
+</span>°
+
+</div>
+
+</div>
+
 
 <div>
-<div class="label">FRECUENCIA</div>
-<div class="value"><span id="frequency">---</span> Hz</div>
+
+<div class="label">
+BRÚJULA MAGNÉTICA
+</div>
+
+<div class="value">
+
+<span id="compassHeading">
+---
+</span>°
+
 </div>
 
 </div>
 
+
+<div>
+
+<div class="label">
+PRECISIÓN BRÚJULA
+</div>
+
+<div class="value">
+
+<span id="compassAccuracy">
+---
+</span>
+
+</div>
+
 </div>
 
 
-<!-- CONFIGURAR ESCALA -->
+<div>
+
+<div class="label">
+CORRECCIÓN ANCLAS
+</div>
+
+<div class="value">
+
+<span id="headingBias">
+0.0
+</span>°
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="label">
+FRECUENCIA
+</div>
+
+<div class="value">
+
+<span id="frequency">
+---
+</span> Hz
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="label">
+MOVIMIENTO
+</div>
+
+<div
+id="movementStatus"
+class="value">
+
+---
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="label">
+ENERGÍA
+</div>
+
+<div
+id="energyValue"
+class="value">
+
+0.000
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<!-- CONFIGURAR MAPA -->
+
 
 <div class="card">
 
 <h2>1. Configurar plano</h2>
 
 <div class="note">
-Marcá A y B en un tramo recto real de 5 metros.
-A será también el punto inicial del recorrido.
+
+Marcá A y B sobre un tramo real recto de 5 metros.
+A será además el comienzo de la prueba.
+
 </div>
 
-<div class="label" style="margin-top:14px">
+
+<div
+class="label"
+style="margin-top:14px">
+
 DISTANCIA A → B
+
 </div>
+
 
 <input
 id="mapDistance"
 type="number"
 value="5"
 min="1"
-step="0.1"
->
+step="0.1">
 
-<button id="mapSetupButton" class="teal">
+
+<button
+id="mapSetupButton"
+class="teal">
+
 📐 MARCAR A Y B
+
 </button>
 
-<button id="clearMapButton" class="gray">
+
+<button
+id="clearMapButton"
+class="gray">
+
 BORRAR A Y B
+
 </button>
 
-<div id="mapResult" class="box-wait">
+
+<div
+id="mapResult"
+class="box-wait">
+
 Pendiente.
+
 </div>
 
 </div>
+
 
 
 <!-- ANCLAS -->
+
 
 <div class="card">
 
 <h2>2. Anclas conocidas</h2>
 
 <div class="note">
-Antes del recorrido ubicá sobre el plano algunos puntos
-<strong>exactos</strong>. No marques simplemente "Lácteos":
-elegí una esquina o punto perfectamente reconocible.
+
+Elegí posiciones muy concretas.
+Ejemplo: esquina exacta de Frutas,
+no simplemente “sector Frutas”.
+
 </div>
 
-<div class="label" style="margin-top:14px">
-ANCLA A UBICAR
+
+<div
+class="label"
+style="margin-top:14px">
+
+ANCLA
+
 </div>
+
 
 <select id="anchorSetupSelect">
-<option value="M1">M1 — Frutas y verduras</option>
-<option value="M2">M2 — Lácteos</option>
-<option value="M3">M3 — Panadería</option>
-<option value="M4">M4 — Cafetería</option>
-<option value="M5">M5 — Patio de comidas</option>
-<option value="M6">M6 — Cajas</option>
+
+<option value="M1">
+M1 — Frutas y verduras
+</option>
+
+<option value="M2">
+M2 — Lácteos
+</option>
+
+<option value="M3">
+M3 — Panadería
+</option>
+
+<option value="M4">
+M4 — Cafetería
+</option>
+
+<option value="M5">
+M5 — Patio de comidas
+</option>
+
+<option value="M6">
+M6 — Cajas
+</option>
+
 </select>
 
-<button id="placeAnchorButton" class="orange">
-📍 UBICAR ANCLA SELECCIONADA EN PLANO
+
+<button
+id="placeAnchorButton"
+class="orange">
+
+📍 UBICAR ANCLA EN PLANO
+
 </button>
 
-<button id="clearAnchorsButton" class="gray">
-BORRAR TODAS LAS ANCLAS
+
+<button
+id="clearAnchorsButton"
+class="gray">
+
+BORRAR ANCLAS
+
 </button>
 
-<div id="anchorSetupStatus" class="box-wait">
+
+<div
+id="anchorSetupStatus"
+class="box-wait">
+
 Todavía no se ubicaron anclas.
+
 </div>
 
 </div>
+
 
 
 <!-- PLANO -->
+
 
 <div class="card">
 
 <h2>Plano Gran Unión</h2>
 
+
 <canvas
 id="mapCanvas"
 width="1200"
 height="850">
+
 </canvas>
 
-<div id="canvasHelp" class="note">
+
+<div
+id="canvasHelp"
+class="note">
+
 Esperando plano.
-</div>
 
 </div>
 
+</div>
 
-<!-- CALIBRACION -->
+
+
+<!-- CALIBRACIÓN -->
+
 
 <div class="card">
 
 <h2>3. Calibración física</h2>
 
+
 <div class="note">
-Realizá 3 pasadas del mismo tramo A → B.
-La aplicación utilizará la mediana.
+
+Hacé 3 pasadas del mismo tramo A → B.
+Se utilizará la mediana.
+
 </div>
 
-<div class="label" style="margin-top:14px">
+
+<div
+class="label"
+style="margin-top:14px">
+
 DISTANCIA REAL
+
 </div>
+
 
 <input
 id="calibrationDistance"
@@ -264,72 +618,145 @@ type="number"
 value="5"
 min="1"
 max="50"
-step="0.1"
->
+step="0.1">
+
 
 <button
 id="startCalibration"
 class="orange"
 disabled>
+
 ▶ INICIAR PASADA
+
 </button>
+
 
 <button
 id="stopCalibration"
 class="red"
 disabled>
+
 ■ FINALIZAR PASADA
+
 </button>
+
 
 <button
 id="clearCalibration"
 class="gray">
+
 BORRAR CALIBRACIONES
+
 </button>
 
-<div id="calibrationResult" class="box-wait">
+
+<div
+id="calibrationResult"
+class="box-wait">
+
 Todavía no calibrado.
-</div>
-
-<div id="calibrationList"></div>
 
 </div>
+
+
+<div id="calibrationList">
+</div>
+
+</div>
+
 
 
 <!-- RECORRIDO -->
+
 
 <div class="card">
 
 <h2>4. Recorrido</h2>
 
+
 <div class="grid">
 
-<div>
-<div class="label">DISTANCIA</div>
-<div class="big"><span id="distance">0.0</span> m</div>
-</div>
 
 <div>
-<div class="label">TIEMPO</div>
-<div class="big"><span id="time">0</span> s</div>
+
+<div class="label">
+DISTANCIA
 </div>
 
-<div>
-<div class="label">PARADAS</div>
-<div class="big" id="stopCount">0</div>
-</div>
+<div class="big">
 
-<div>
-<div class="label">TIEMPO PARADO</div>
-<div class="big"><span id="stoppedTime">0</span> s</div>
+<span id="distance">
+0.0
+</span> m
+
 </div>
 
 </div>
+
+
+<div>
+
+<div class="label">
+TIEMPO
+</div>
+
+<div class="big">
+
+<span id="time">
+0
+</span> s
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="label">
+PARADAS
+</div>
+
+<div
+id="stopCount"
+class="big">
+
+0
+
+</div>
+
+</div>
+
+
+<div>
+
+<div class="label">
+TIEMPO PARADO
+</div>
+
+<div class="big">
+
+<span id="stoppedTime">
+0
+</span> s
+
+</div>
+
+</div>
+
+
+</div>
+
 
 <hr>
 
+
 <div class="note">
-Para empezar: carrito exactamente en A y apuntando hacia B.
+
+Antes de tocar INICIAR:
+carrito/teléfonos exactamente en A
+y apuntando físicamente hacia B.
+
 </div>
 
 </div>
@@ -339,8 +766,14 @@ Para empezar: carrito exactamente en A y apuntando hacia B.
 id="startRoute"
 class="green"
 disabled>
+
 ▶ INICIAR RECORRIDO
+
 </button>
+
+
+
+<!-- CONFIRMAR ANCLAS -->
 
 
 <div class="card">
@@ -348,36 +781,75 @@ disabled>
 <h2>Confirmar posición conocida</h2>
 
 <div class="note">
-Cuando estés físicamente exactamente en uno de estos puntos,
-tocá su botón. La aplicación medirá el error y corregirá
-automáticamente la trayectoria.
+
+Cuando pases exactamente por una ancla,
+tocá el botón correspondiente.
+
 </div>
+
 
 <div class="anchor-grid">
 
-<button id="confirmM1" class="anchorButton" disabled>
+
+<button
+id="confirmM1"
+class="anchorButton"
+disabled>
+
 📍 M1<br>FRUTAS
+
 </button>
 
-<button id="confirmM2" class="anchorButton" disabled>
+
+<button
+id="confirmM2"
+class="anchorButton"
+disabled>
+
 📍 M2<br>LÁCTEOS
+
 </button>
 
-<button id="confirmM3" class="anchorButton" disabled>
+
+<button
+id="confirmM3"
+class="anchorButton"
+disabled>
+
 📍 M3<br>PANADERÍA
+
 </button>
 
-<button id="confirmM4" class="anchorButton" disabled>
+
+<button
+id="confirmM4"
+class="anchorButton"
+disabled>
+
 📍 M4<br>CAFETERÍA
+
 </button>
 
-<button id="confirmM5" class="anchorButton" disabled>
+
+<button
+id="confirmM5"
+class="anchorButton"
+disabled>
+
 📍 M5<br>PATIO COMIDAS
+
 </button>
 
-<button id="confirmM6" class="anchorButton" disabled>
+
+<button
+id="confirmM6"
+class="anchorButton"
+disabled>
+
 📍 M6<br>CAJAS
+
 </button>
+
 
 </div>
 
@@ -388,172 +860,260 @@ automáticamente la trayectoria.
 id="stopRoute"
 class="red"
 disabled>
+
 ■ FINALIZAR RECORRIDO
+
 </button>
+
 
 <button
 id="resetRoute"
 class="gray">
+
 ↻ REINICIAR RECORRIDO
+
 </button>
+
 
 <button
 id="downloadCSV"
 class="purple"
 disabled>
+
 DESCARGAR CSV
+
 </button>
+
 
 
 <!-- ERROR -->
 
+
 <div class="card">
 
-<h2>Error medido</h2>
-
-<div class="note">
-Error = distancia entre dónde creía estar el sensor
-y dónde realmente estabas cuando confirmaste el ancla.
-</div>
+<h2>Error por ancla</h2>
 
 <div id="anchorErrorList">
+
 <div class="note">
+
 Todavía no hay mediciones.
-</div>
+
 </div>
 
 </div>
+
+</div>
+
 
 
 <!-- PARADAS -->
+
 
 <div class="card">
 
 <h2>Paradas inteligentes</h2>
 
 <div class="note">
-Se confirma después de 3 segundos.
-Una vez iniciada, continúa aunque muevan el carrito,
-mientras no se aleje más de 2 metros del punto inicial.
+
+3 segundos para confirmar.
+Después puede moverse dentro de un radio
+de 2 metros y sigue siendo la misma parada.
+
 </div>
 
-<div id="activeStopInfo" class="box-wait">
+
+<div
+id="activeStopInfo"
+class="box-wait">
+
 Sin parada activa.
+
 </div>
+
 
 <div id="stopList">
+
 <div class="note">
+
 Todavía no hay paradas.
-</div>
-</div>
 
 </div>
 
 </div>
+
+</div>
+
+
+</div>
+
 
 
 <script>
 
-/* ===========================================================
-CONFIGURACIÓN
-=========================================================== */
 
-const MOVEMENT_THRESHOLD = 0.055;
-
-const STOP_CONFIRM_SECONDS = 3;
-
-/*
-Antes de confirmar la parada toleramos pequeños
-movimientos dentro de 0,75 m.
-*/
-const STOP_CONFIRM_RADIUS_METERS = 0.75;
-
-/*
-Una parada ya confirmada continúa dentro de 2 m.
-*/
-const STOP_ZONE_RADIUS_METERS = 2.0;
-
-/*
-Cuánto de la corrección angular aplicamos después
-de cada ancla.
-1 = corrección total.
-0.70 evita sobrecorregir por un único punto.
-*/
-const HEADING_CORRECTION_GAIN = 0.70;
-
-/*
-Máximo cambio angular permitido por ancla.
-*/
-const MAX_HEADING_CORRECTION_DEG = 15;
+/* ============================================================
+ CONFIGURACIÓN
+============================================================ */
 
 
-/* ===========================================================
-ANCLAS
-=========================================================== */
+const MOVEMENT_THRESHOLD =
+0.055;
 
-const anchors = {
+
+const STOP_CONFIRM_SECONDS =
+3;
+
+
+const STOP_CONFIRM_RADIUS_METERS =
+0.75;
+
+
+const STOP_ZONE_RADIUS_METERS =
+2.0;
+
+
+const HEADING_CORRECTION_GAIN =
+0.70;
+
+
+const MAX_HEADING_CORRECTION_DEG =
+15;
+
+
+
+/* ============================================================
+ ANCLAS
+============================================================ */
+
+
+const anchors={
 
 M1:{
-    name:"Frutas y verduras",
-    x:null,y:null
+name:"Frutas y verduras",
+x:null,
+y:null
 },
 
 M2:{
-    name:"Lácteos",
-    x:null,y:null
+name:"Lácteos",
+x:null,
+y:null
 },
 
 M3:{
-    name:"Panadería",
-    x:null,y:null
+name:"Panadería",
+x:null,
+y:null
 },
 
 M4:{
-    name:"Cafetería",
-    x:null,y:null
+name:"Cafetería",
+x:null,
+y:null
 },
 
 M5:{
-    name:"Patio de comidas",
-    x:null,y:null
+name:"Patio de comidas",
+x:null,
+y:null
 },
 
 M6:{
-    name:"Cajas",
-    x:null,y:null
+name:"Cajas",
+x:null,
+y:null
 }
 
 };
 
-let anchorPlacementId = null;
 
-let anchorEvents = [];
+let anchorPlacementId=null;
+
+let anchorEvents=[];
 
 
-/* ===========================================================
-SENSORES
-=========================================================== */
+
+/* ============================================================
+ ORIENTACIÓN V0.7
+============================================================ */
+
+
+/*
+ IMPORTANTE:
+
+ El trazado NO utiliza
+ webkitCompassHeading.
+
+ Utilizamos siempre:
+
+ 360 - event.alpha
+
+ tanto en iPhone como Android.
+*/
+
+
+let alphaRaw=null;
+
+
+/*
+ Valor circular suavizado
+ entre 0 y 360.
+*/
+
+let sensorYaw=null;
+
+
+/*
+ Valor del sensor en el instante
+ exacto de iniciar recorrido.
+*/
+
+let routeStartYaw=null;
+
+
+/*
+ Corrección aprendida mediante
+ anclas.
+*/
+
+let headingBiasRad=0;
+
+
+/*
+ Sólo diagnóstico.
+*/
+
+let magneticCompass=null;
+
+let magneticAccuracy=null;
+
+let orientationAbsolute=null;
+
+
+
+/* ============================================================
+ SENSORES
+============================================================ */
+
 
 let sensorsActive=false;
 
-let headingSmooth=null;
-
-/*
-Corrección angular acumulada a partir
-de los puntos conocidos.
-*/
-let headingBiasRad=0;
-
 let lastMotionTime=null;
+
 let filteredEnergy=0;
 
 let sampleCounter=0;
-let frequencyStart=performance.now();
+
+let frequencyStart=
+performance.now();
 
 
-/* ===========================================================
-CALIBRACIÓN
-=========================================================== */
+
+/* ============================================================
+ CALIBRACIÓN
+============================================================ */
+
 
 let calibrating=false;
 
@@ -564,54 +1124,62 @@ let calibrationRuns=[];
 let calibrationFactor=null;
 
 
-/* ===========================================================
-PLANO
-=========================================================== */
 
-const planImage=new Image();
+/* ============================================================
+ PLANO
+============================================================ */
+
+
+const planImage=
+new Image();
+
 
 let planLoaded=false;
 
 let mapSetupMode=false;
 
 let mapPointA=null;
+
 let mapPointB=null;
 
 let mapPixelsPerMeter=null;
+
 let mapBaseAngle=null;
 
 
-/* ===========================================================
-RECORRIDO
-=========================================================== */
+
+/* ============================================================
+ RECORRIDO
+============================================================ */
+
 
 let recording=false;
 
-let routeStartHeading=null;
 let routeStartTime=null;
 
 let currentMapX=null;
+
 let currentMapY=null;
 
 let totalDistance=0;
 
 let routeData=[];
+
 let eventData=[];
 
-/*
-Inicio del segmento que será corregido
-cuando lleguemos al próximo punto conocido.
-*/
 let lastAnchorRouteIndex=0;
 
 let lastAnchorActual=null;
 
 
-/* ===========================================================
-PARADAS
-=========================================================== */
+
+/* ============================================================
+ PARADAS
+============================================================ */
+
 
 let stopCandidate=null;
+
 let activeStop=null;
 
 let stops=[];
@@ -619,447 +1187,635 @@ let stops=[];
 let totalStoppedSeconds=0;
 
 
-/* ===========================================================
-DOM
-=========================================================== */
+
+/* ============================================================
+ DOM
+============================================================ */
+
 
 const statusEl=
-document.getElementById("status");
+document.getElementById(
+"status"
+);
 
-const headingEl=
-document.getElementById("heading");
+
+const relativeHeadingEl=
+document.getElementById(
+"relativeHeading"
+);
+
+
+const routeTurnEl=
+document.getElementById(
+"routeTurn"
+);
+
+
+const compassHeadingEl=
+document.getElementById(
+"compassHeading"
+);
+
+
+const compassAccuracyEl=
+document.getElementById(
+"compassAccuracy"
+);
+
 
 const headingBiasEl=
-document.getElementById("headingBias");
+document.getElementById(
+"headingBias"
+);
+
 
 const movementEl=
-document.getElementById("movementStatus");
+document.getElementById(
+"movementStatus"
+);
+
+
+const energyValueEl=
+document.getElementById(
+"energyValue"
+);
+
 
 const frequencyEl=
-document.getElementById("frequency");
+document.getElementById(
+"frequency"
+);
+
 
 const distanceEl=
-document.getElementById("distance");
+document.getElementById(
+"distance"
+);
+
 
 const timeEl=
-document.getElementById("time");
+document.getElementById(
+"time"
+);
+
 
 const stopCountEl=
-document.getElementById("stopCount");
+document.getElementById(
+"stopCount"
+);
+
 
 const stoppedTimeEl=
-document.getElementById("stoppedTime");
+document.getElementById(
+"stoppedTime"
+);
+
 
 const stopListEl=
-document.getElementById("stopList");
+document.getElementById(
+"stopList"
+);
+
 
 const activeStopInfo=
-document.getElementById("activeStopInfo");
+document.getElementById(
+"activeStopInfo"
+);
+
 
 const anchorErrorList=
-document.getElementById("anchorErrorList");
+document.getElementById(
+"anchorErrorList"
+);
+
 
 const anchorSetupStatus=
-document.getElementById("anchorSetupStatus");
+document.getElementById(
+"anchorSetupStatus"
+);
+
 
 const canvas=
-document.getElementById("mapCanvas");
+document.getElementById(
+"mapCanvas"
+);
+
 
 const ctx=
-canvas.getContext("2d");
+canvas.getContext(
+"2d"
+);
+
 
 const mapResult=
-document.getElementById("mapResult");
+document.getElementById(
+"mapResult"
+);
+
 
 const canvasHelp=
-document.getElementById("canvasHelp");
+document.getElementById(
+"canvasHelp"
+);
+
 
 const calibrationResult=
-document.getElementById("calibrationResult");
+document.getElementById(
+"calibrationResult"
+);
+
 
 const calibrationList=
-document.getElementById("calibrationList");
+document.getElementById(
+"calibrationList"
+);
+
 
 const sensorButton=
-document.getElementById("sensorButton");
+document.getElementById(
+"sensorButton"
+);
+
 
 const startCalibration=
-document.getElementById("startCalibration");
+document.getElementById(
+"startCalibration"
+);
+
 
 const stopCalibration=
-document.getElementById("stopCalibration");
+document.getElementById(
+"stopCalibration"
+);
+
 
 const startRoute=
-document.getElementById("startRoute");
+document.getElementById(
+"startRoute"
+);
+
 
 const stopRoute=
-document.getElementById("stopRoute");
+document.getElementById(
+"stopRoute"
+);
+
 
 const downloadCSV=
-document.getElementById("downloadCSV");
+document.getElementById(
+"downloadCSV"
+);
 
 
-/* ===========================================================
-CARGAR PLANO
-=========================================================== */
 
-planImage.onload=function(){
+/* ============================================================
+ PLANO
+============================================================ */
 
-    planLoaded=true;
 
-    const targetWidth=1200;
+planImage.onload=
+function(){
 
-    const ratio=
-    planImage.height/
-    planImage.width;
+planLoaded=true;
 
-    canvas.width=targetWidth;
 
-    canvas.height=
-    Math.round(
-        targetWidth*ratio
-    );
+const targetWidth=
+1200;
 
-    redrawEverything();
 
-    canvasHelp.textContent=
-    "Plano cargado.";
+const ratio=
+planImage.height/
+planImage.width;
+
+
+canvas.width=
+targetWidth;
+
+
+canvas.height=
+Math.round(
+targetWidth*
+ratio
+);
+
+
+redrawEverything();
+
+
+canvasHelp.textContent=
+"Plano cargado.";
+
 };
 
 
-planImage.onerror=function(){
+planImage.onerror=
+function(){
 
-    canvasHelp.textContent=
-    "ERROR: falta layout-gran-union.png";
+canvasHelp.textContent=
+"ERROR: falta layout-gran-union.png";
+
 };
 
 
 planImage.src=
-"layout-gran-union.png?v=6";
+"layout-gran-union.png?v=7";
 
 
-/* ===========================================================
-REDIBUJAR
-=========================================================== */
+
+/* ============================================================
+ DIBUJAR
+============================================================ */
+
 
 function redrawEverything(){
 
-    if(!planLoaded)return;
-
-    ctx.clearRect(
-        0,0,
-        canvas.width,
-        canvas.height
-    );
-
-    ctx.drawImage(
-        planImage,
-        0,0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    /*
-    A/B
-    */
-
-    if(mapPointA){
-
-        drawPoint(
-            mapPointA.x,
-            mapPointA.y,
-            "A",
-            "#dc3545",
-            12
-        );
-    }
-
-    if(mapPointB){
-
-        drawPoint(
-            mapPointB.x,
-            mapPointB.y,
-            "B",
-            "#007aff",
-            12
-        );
-    }
-
-    if(mapPointA && mapPointB){
-
-        ctx.strokeStyle="#007aff";
-        ctx.lineWidth=5;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            mapPointA.x,
-            mapPointA.y
-        );
-
-        ctx.lineTo(
-            mapPointB.x,
-            mapPointB.y
-        );
-
-        ctx.stroke();
-    }
-
-
-    /*
-    ANCLAS
-    */
-
-    Object.keys(anchors)
-    .forEach(function(id){
-
-        const a=anchors[id];
-
-        if(
-            a.x!==null &&
-            a.y!==null
-        ){
-
-            drawPoint(
-                a.x,
-                a.y,
-                id,
-                "#ff9500",
-                11
-            );
-        }
-    });
-
-
-    /*
-    RECORRIDO
-    */
-
-    if(routeData.length>1){
-
-        ctx.strokeStyle=
-        "#15965f";
-
-        ctx.lineWidth=9;
-
-        ctx.lineCap="round";
-        ctx.lineJoin="round";
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            Number(
-                routeData[0]
-                .canvas_x
-            ),
-            Number(
-                routeData[0]
-                .canvas_y
-            )
-        );
-
-        for(
-            let i=1;
-            i<routeData.length;
-            i++
-        ){
-
-            ctx.lineTo(
-                Number(
-                    routeData[i]
-                    .canvas_x
-                ),
-                Number(
-                    routeData[i]
-                    .canvas_y
-                )
-            );
-        }
-
-        ctx.stroke();
-    }
-
-
-    /*
-    PARADAS
-    */
-
-    stops.forEach(
-        drawStop
-    );
-
-
-    /*
-    CONFIRMACIONES
-    */
-
-    anchorEvents.forEach(
-        function(e){
-
-            drawPoint(
-                e.actualX,
-                e.actualY,
-                e.id,
-                "#ff9500",
-                9
-            );
-        }
-    );
+if(!planLoaded){
+return;
 }
 
 
-/* ===========================================================
-PUNTO
-=========================================================== */
+ctx.clearRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
 
-function drawPoint(
-x,y,label,color,radius
+
+ctx.drawImage(
+planImage,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+
+if(mapPointA){
+
+drawPoint(
+mapPointA.x,
+mapPointA.y,
+"A",
+"#dc3545",
+12
+);
+
+}
+
+
+if(mapPointB){
+
+drawPoint(
+mapPointB.x,
+mapPointB.y,
+"B",
+"#007aff",
+12
+);
+
+}
+
+
+if(
+mapPointA &&
+mapPointB
 ){
 
-    ctx.fillStyle=color;
+ctx.strokeStyle=
+"#007aff";
 
-    ctx.beginPath();
-
-    ctx.arc(
-        x,y,
-        radius,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
+ctx.lineWidth=
+5;
 
 
-    ctx.fillStyle="#111";
+ctx.beginPath();
 
-    ctx.font=
-    "bold 21px sans-serif";
 
-    ctx.fillText(
-        label,
-        x+14,
-        y-10
-    );
+ctx.moveTo(
+mapPointA.x,
+mapPointA.y
+);
+
+
+ctx.lineTo(
+mapPointB.x,
+mapPointB.y
+);
+
+
+ctx.stroke();
+
 }
 
 
-/* ===========================================================
-POSICIÓN TAP
-=========================================================== */
 
-function canvasPosition(event){
+/*
+ ANCLAS
+*/
 
-    const rect=
-    canvas.getBoundingClientRect();
 
-    return{
+Object.keys(
+anchors
+)
+.forEach(
+function(id){
 
-        x:
-        (event.clientX-
-        rect.left)*
-        canvas.width/
-        rect.width,
+const a=
+anchors[id];
 
-        y:
-        (event.clientY-
-        rect.top)*
-        canvas.height/
-        rect.height
 
-    };
+if(
+a.x!==null &&
+a.y!==null
+){
+
+drawPoint(
+a.x,
+a.y,
+id,
+"#ff9500",
+11
+);
+
+}
+
+}
+);
+
+
+
+/*
+ RECORRIDO
+*/
+
+
+if(routeData.length>1){
+
+ctx.strokeStyle=
+"#15965f";
+
+
+ctx.lineWidth=
+9;
+
+
+ctx.lineCap=
+"round";
+
+
+ctx.lineJoin=
+"round";
+
+
+ctx.beginPath();
+
+
+ctx.moveTo(
+Number(
+routeData[0]
+.canvas_x
+),
+Number(
+routeData[0]
+.canvas_y
+)
+);
+
+
+for(
+let i=1;
+i<routeData.length;
+i++
+){
+
+ctx.lineTo(
+Number(
+routeData[i]
+.canvas_x
+),
+Number(
+routeData[i]
+.canvas_y
+)
+);
+
 }
 
 
-/* ===========================================================
-TAP EN PLANO
-=========================================================== */
+ctx.stroke();
+
+}
+
+
+
+/*
+ PARADAS
+*/
+
+
+stops.forEach(
+drawStop
+);
+
+}
+
+
+
+/* ============================================================
+ PUNTO
+============================================================ */
+
+
+function drawPoint(
+x,
+y,
+label,
+color,
+radius
+){
+
+ctx.fillStyle=
+color;
+
+
+ctx.beginPath();
+
+
+ctx.arc(
+x,
+y,
+radius,
+0,
+Math.PI*2
+);
+
+
+ctx.fill();
+
+
+ctx.fillStyle=
+"#111";
+
+
+ctx.font=
+"bold 21px sans-serif";
+
+
+ctx.fillText(
+label,
+x+14,
+y-10
+);
+
+}
+
+
+
+/* ============================================================
+ TAP
+============================================================ */
+
+
+function canvasPosition(
+event
+){
+
+const rect=
+canvas.getBoundingClientRect();
+
+
+return{
+
+x:
+(event.clientX-
+rect.left)*
+canvas.width/
+rect.width,
+
+y:
+(event.clientY-
+rect.top)*
+canvas.height/
+rect.height
+
+};
+
+}
+
+
 
 canvas.addEventListener(
 "pointerdown",
 function(event){
 
-    const p=
-    canvasPosition(event);
+const p=
+canvasPosition(
+event
+);
 
 
-    /*
-    A/B
-    */
+/*
+ A/B
+*/
 
-    if(mapSetupMode){
+if(mapSetupMode){
 
-        if(!mapPointA){
+if(!mapPointA){
 
-            mapPointA=p;
-
-            mapResult.textContent=
-            "A marcado. Ahora tocá B.";
-
-            redrawEverything();
-
-            return;
-        }
-
-        if(!mapPointB){
-
-            mapPointB=p;
-
-            finishMapCalibration();
-
-            mapSetupMode=false;
-
-            redrawEverything();
-
-            return;
-        }
-    }
+mapPointA=
+p;
 
 
-    /*
-    ANCLA
-    */
-
-    if(anchorPlacementId){
-
-        anchors[
-            anchorPlacementId
-        ].x=p.x;
-
-        anchors[
-            anchorPlacementId
-        ].y=p.y;
+mapResult.textContent=
+"A marcado. Ahora tocá B.";
 
 
-        anchorSetupStatus.innerHTML=
-        "✓ "+
-        anchorPlacementId+
-        " — "+
-        anchors[
-            anchorPlacementId
-        ].name+
-        " ubicado.";
+redrawEverything();
 
 
-        anchorSetupStatus.className=
-        "box-ok";
+return;
+
+}
 
 
-        anchorPlacementId=null;
+if(!mapPointB){
 
-        redrawEverything();
-
-        updateAnchorButtons();
-
-        return;
-    }
-
-});
+mapPointB=
+p;
 
 
-/* ===========================================================
-A/B
-=========================================================== */
+finishMapCalibration();
+
+
+mapSetupMode=
+false;
+
+
+redrawEverything();
+
+
+return;
+
+}
+
+}
+
+
+
+/*
+ ANCLA
+*/
+
+if(anchorPlacementId){
+
+anchors[
+anchorPlacementId
+].x=
+p.x;
+
+
+anchors[
+anchorPlacementId
+].y=
+p.y;
+
+
+anchorSetupStatus.innerHTML=
+"✓ "+
+anchorPlacementId+
+" — "+
+anchors[
+anchorPlacementId
+].name+
+" ubicado.";
+
+
+anchorSetupStatus.className=
+"box-ok";
+
+
+anchorPlacementId=
+null;
+
+
+redrawEverything();
+
+
+updateAnchorButtons();
+
+}
+
+}
+);
+
+
+
+/* ============================================================
+ A/B
+============================================================ */
+
 
 document
 .getElementById(
@@ -1069,26 +1825,35 @@ document
 "click",
 function(){
 
-    mapPointA=null;
-    mapPointB=null;
+mapPointA=null;
 
-    mapPixelsPerMeter=null;
-    mapBaseAngle=null;
+mapPointB=null;
 
-    mapSetupMode=true;
+mapPixelsPerMeter=null;
 
-    anchorPlacementId=null;
+mapBaseAngle=null;
 
-    mapResult.textContent=
-    "Tocá primero A y después B.";
+mapSetupMode=true;
 
-    mapResult.className=
-    "box-wait";
+anchorPlacementId=null;
 
-    redrawEverything();
 
-    checkReady();
-});
+mapResult.textContent=
+"Tocá primero A y después B.";
+
+
+mapResult.className=
+"box-wait";
+
+
+redrawEverything();
+
+
+checkReady();
+
+}
+);
+
 
 
 document
@@ -1099,86 +1864,105 @@ document
 "click",
 function(){
 
-    mapPointA=null;
-    mapPointB=null;
+mapPointA=null;
 
-    mapPixelsPerMeter=null;
-    mapBaseAngle=null;
+mapPointB=null;
 
-    mapSetupMode=false;
+mapPixelsPerMeter=null;
 
-    mapResult.textContent=
-    "Pendiente.";
+mapBaseAngle=null;
 
-    mapResult.className=
-    "box-wait";
+mapSetupMode=false;
 
-    redrawEverything();
 
-    checkReady();
-});
+mapResult.textContent=
+"Pendiente.";
+
+
+mapResult.className=
+"box-wait";
+
+
+redrawEverything();
+
+
+checkReady();
+
+}
+);
+
 
 
 function finishMapCalibration(){
 
-    const realDistance=
-    Number(
-        document
-        .getElementById(
-        "mapDistance"
-        ).value
-    );
+const realDistance=
+Number(
+document
+.getElementById(
+"mapDistance"
+)
+.value
+);
 
 
-    const dx=
-    mapPointB.x-
-    mapPointA.x;
-
-    const dy=
-    mapPointB.y-
-    mapPointA.y;
+const dx=
+mapPointB.x-
+mapPointA.x;
 
 
-    const px=
-    Math.sqrt(
-        dx*dx+
-        dy*dy
-    );
+const dy=
+mapPointB.y-
+mapPointA.y;
 
 
-    mapPixelsPerMeter=
-    px/
-    realDistance;
+const px=
+Math.sqrt(
+dx*dx+
+dy*dy
+);
 
 
-    mapBaseAngle=
-    Math.atan2(
-        dy,
-        dx
-    );
+mapPixelsPerMeter=
+px/
+realDistance;
 
 
-    mapResult.innerHTML=
-    "✓ PLANO CALIBRADO<br>"+
-    realDistance.toFixed(1)+
-    " m = "+
-    px.toFixed(1)+
-    " px<br>"+
-    mapPixelsPerMeter.toFixed(2)+
-    " px/m";
+/*
+ Dirección REAL de A hacia B
+ dentro del dibujo.
+*/
+
+mapBaseAngle=
+Math.atan2(
+dy,
+dx
+);
 
 
-    mapResult.className=
-    "box-ok";
+mapResult.innerHTML=
+"✓ PLANO CALIBRADO<br>"+
+realDistance.toFixed(1)+
+" m = "+
+px.toFixed(1)+
+" px<br>"+
+mapPixelsPerMeter.toFixed(2)+
+" px/m";
 
 
-    checkReady();
+mapResult.className=
+"box-ok";
+
+
+checkReady();
+
 }
 
 
-/* ===========================================================
-UBICAR ANCLA
-=========================================================== */
+
+/* ============================================================
+ ANCLAS EN PLANO
+============================================================ */
+
 
 document
 .getElementById(
@@ -1188,28 +1972,33 @@ document
 "click",
 function(){
 
-    anchorPlacementId=
-    document
-    .getElementById(
-    "anchorSetupSelect"
-    ).value;
+anchorPlacementId=
+document
+.getElementById(
+"anchorSetupSelect"
+)
+.value;
 
 
-    mapSetupMode=false;
+mapSetupMode=
+false;
 
 
-    anchorSetupStatus.textContent=
-    "Tocá en el plano la posición EXACTA de "+
-    anchorPlacementId+
-    " — "+
-    anchors[
-        anchorPlacementId
-    ].name;
+anchorSetupStatus.textContent=
+"Tocá la posición EXACTA de "+
+anchorPlacementId+
+" — "+
+anchors[
+anchorPlacementId
+].name;
 
 
-    anchorSetupStatus.className=
-    "box-wait";
-});
+anchorSetupStatus.className=
+"box-wait";
+
+}
+);
+
 
 
 document
@@ -1220,122 +2009,156 @@ document
 "click",
 function(){
 
-    Object.keys(
-        anchors
-    )
-    .forEach(
-        function(id){
+Object.keys(
+anchors
+)
+.forEach(
+function(id){
 
-            anchors[id].x=null;
-            anchors[id].y=null;
-        }
-    );
+anchors[id].x=null;
 
+anchors[id].y=null;
 
-    anchorPlacementId=null;
-
-
-    anchorSetupStatus.textContent=
-    "Todavía no se ubicaron anclas.";
+}
+);
 
 
-    anchorSetupStatus.className=
-    "box-wait";
+anchorPlacementId=null;
 
 
-    redrawEverything();
-
-    updateAnchorButtons();
-});
+anchorSetupStatus.textContent=
+"Todavía no se ubicaron anclas.";
 
 
-/* ===========================================================
-SENSORES
-=========================================================== */
+anchorSetupStatus.className=
+"box-wait";
+
+
+redrawEverything();
+
+
+updateAnchorButtons();
+
+}
+);
+
+
+
+/* ============================================================
+ ACTIVAR SENSORES
+============================================================ */
+
 
 async function activateSensors(){
 
-    try{
-
-        if(
-            typeof DeviceMotionEvent!=="undefined" &&
-            typeof DeviceMotionEvent.requestPermission==="function"
-        ){
-
-            const r=
-            await DeviceMotionEvent
-            .requestPermission();
-
-            if(r!=="granted"){
-
-                throw new Error(
-                    "Movimiento rechazado"
-                );
-            }
-        }
+try{
 
 
-        if(
-            typeof DeviceOrientationEvent!=="undefined" &&
-            typeof DeviceOrientationEvent.requestPermission==="function"
-        ){
+if(
+typeof DeviceMotionEvent!==
+"undefined" &&
+typeof DeviceMotionEvent
+.requestPermission===
+"function"
+){
 
-            const r=
-            await DeviceOrientationEvent
-            .requestPermission();
-
-            if(r!=="granted"){
-
-                throw new Error(
-                    "Orientación rechazada"
-                );
-            }
-        }
+const r=
+await DeviceMotionEvent
+.requestPermission();
 
 
-        window.addEventListener(
-            "devicemotion",
-            motionHandler
-        );
+if(r!=="granted"){
 
-        window.addEventListener(
-            "deviceorientation",
-            orientationHandler
-        );
+throw new Error(
+"Movimiento rechazado"
+);
 
-
-        sensorsActive=true;
-
-
-        statusEl.textContent=
-        "● Sensores activos";
-
-        statusEl.className=
-        "status ok";
-
-
-        sensorButton.disabled=true;
-
-        sensorButton.textContent=
-        "SENSORES ACTIVADOS";
-
-
-        startCalibration.disabled=false;
-
-
-        checkReady();
-
-    }
-    catch(error){
-
-        statusEl.textContent=
-        "● "+
-        error.message;
-
-        statusEl.className=
-        "status error";
-    }
 }
+
+}
+
+
+
+if(
+typeof DeviceOrientationEvent!==
+"undefined" &&
+typeof DeviceOrientationEvent
+.requestPermission===
+"function"
+){
+
+const r=
+await DeviceOrientationEvent
+.requestPermission();
+
+
+if(r!=="granted"){
+
+throw new Error(
+"Orientación rechazada"
+);
+
+}
+
+}
+
+
+
+window.addEventListener(
+"devicemotion",
+motionHandler
+);
+
+
+window.addEventListener(
+"deviceorientation",
+orientationHandler
+);
+
+
+
+sensorsActive=
+true;
+
+
+
+statusEl.textContent=
+"● Sensores activos — modo RELATIVE ALPHA";
+
+
+statusEl.className=
+"status ok";
+
+
+sensorButton.disabled=
+true;
+
+
+sensorButton.textContent=
+"SENSORES ACTIVADOS";
+
+
+startCalibration.disabled=
+false;
+
+
+checkReady();
+
+}
+catch(error){
+
+statusEl.textContent=
+"● "+
+error.message;
+
+
+statusEl.className=
+"status error";
+
+}
+
+}
+
 
 
 sensorButton.addEventListener(
@@ -1344,417 +2167,695 @@ activateSensors
 );
 
 
-/* ===========================================================
-ORIENTACIÓN
-=========================================================== */
 
-function orientationHandler(event){
-
-    let h;
+/* ============================================================
+ ORIENTACIÓN V0.7
+============================================================ */
 
 
-    if(
-        event.webkitCompassHeading!==
-        undefined
-    ){
+function orientationHandler(
+event
+){
 
-        h=
-        event.webkitCompassHeading;
-
-    }
-    else{
-
-        h=
-        360-
-        event.alpha;
-    }
+/*
+ GUARDAMOS BRÚJULA
+ sólo para análisis posterior.
+*/
 
 
-    if(
-        h===null ||
-        h===undefined ||
-        isNaN(h)
-    ){
-        return;
-    }
+if(
+event.webkitCompassHeading!==
+undefined &&
+event.webkitCompassHeading!==
+null
+){
+
+magneticCompass=
+event.webkitCompassHeading;
 
 
-    h=
-    (h+360)%360;
+compassHeadingEl.textContent=
+magneticCompass.toFixed(1);
 
-
-    if(
-        headingSmooth===null
-    ){
-
-        headingSmooth=h;
-
-    }
-    else{
-
-        let diff=
-        ((h-
-        headingSmooth+
-        540)%360)-180;
-
-
-        headingSmooth+=
-        diff*0.18;
-
-
-        headingSmooth=
-        (headingSmooth+360)%360;
-    }
-
-
-    headingEl.textContent=
-    headingSmooth.toFixed(1);
 }
 
 
-/* ===========================================================
-MOVIMIENTO
-=========================================================== */
 
-function motionHandler(event){
+if(
+event.webkitCompassAccuracy!==
+undefined &&
+event.webkitCompassAccuracy!==
+null
+){
 
-    const now=
-    performance.now();
+magneticAccuracy=
+event.webkitCompassAccuracy;
 
 
-    sampleCounter++;
+if(magneticAccuracy>=0){
 
+compassAccuracyEl.textContent=
+"±"+
+magneticAccuracy.toFixed(1)+
+"°";
 
-    if(
-        now-
-        frequencyStart>=1000
-    ){
+}
+else{
 
-        frequencyEl.textContent=
-        sampleCounter;
+compassAccuracyEl.textContent=
+"NO CAL.";
 
-        sampleCounter=0;
+}
 
-        frequencyStart=now;
-    }
-
-
-    if(
-        lastMotionTime===null
-    ){
-
-        lastMotionTime=now;
-
-        return;
-    }
-
-
-    let dt=
-    (now-
-    lastMotionTime)/
-    1000;
-
-
-    lastMotionTime=now;
-
-
-    if(dt>0.1){
-        dt=0.1;
-    }
-
-
-    const a=
-    event.acceleration;
-
-
-    if(!a){
-        return;
-    }
-
-
-    const ax=a.x||0;
-    const ay=a.y||0;
-    const az=a.z||0;
-
-
-    const magnitude=
-    Math.sqrt(
-        ax*ax+
-        ay*ay+
-        az*az
-    );
-
-
-    filteredEnergy=
-    filteredEnergy*0.75+
-    magnitude*0.25;
-
-
-    let effectiveEnergy=
-    filteredEnergy-
-    MOVEMENT_THRESHOLD;
-
-
-    if(effectiveEnergy<0){
-        effectiveEnergy=0;
-    }
-
-
-    if(effectiveEnergy>0){
-
-        movementEl.textContent=
-        "MOVIÉNDOSE";
-
-        movementEl.style.color=
-        "#198754";
-
-    }
-    else{
-
-        movementEl.textContent=
-        "DETENIDO";
-
-        movementEl.style.color=
-        "#777";
-    }
-
-
-    /*
-    CALIBRACIÓN
-    */
-
-    if(calibrating){
-
-        calibrationEnergy+=
-        effectiveEnergy*dt;
-    }
-
-
-    /*
-    RECORRIDO
-    */
-
-    if(
-        recording &&
-        calibrationFactor!==null &&
-        routeStartHeading!==null &&
-        mapPixelsPerMeter!==null
-    ){
-
-        let step=
-        effectiveEnergy*
-        dt*
-        calibrationFactor;
-
-
-        if(step>0.20){
-            step=0.20;
-        }
-
-
-        const headingDiff=
-        ((headingSmooth-
-        routeStartHeading+
-        540)%360)-180;
-
-
-        const angle=
-        mapBaseAngle+
-        headingDiff*
-        Math.PI/180+
-        headingBiasRad;
-
-
-        const oldX=
-        currentMapX;
-
-        const oldY=
-        currentMapY;
-
-
-        currentMapX+=
-        Math.cos(angle)*
-        step*
-        mapPixelsPerMeter;
-
-
-        currentMapY+=
-        Math.sin(angle)*
-        step*
-        mapPixelsPerMeter;
-
-
-        totalDistance+=step;
-
-
-        const elapsed=
-        (now-
-        routeStartTime)/
-        1000;
-
-
-        distanceEl.textContent=
-        totalDistance.toFixed(1);
-
-        timeEl.textContent=
-        elapsed.toFixed(0);
-
-
-        routeData.push({
-
-            time:
-            elapsed.toFixed(3),
-
-            heading:
-            headingSmooth.toFixed(2),
-
-            heading_bias_deg:
-            (
-                headingBiasRad*
-                180/
-                Math.PI
-            ).toFixed(3),
-
-            ax:ax.toFixed(4),
-
-            ay:ay.toFixed(4),
-
-            az:az.toFixed(4),
-
-            energy:
-            effectiveEnergy.toFixed(5),
-
-            distance_step:
-            step.toFixed(5),
-
-            total_distance:
-            totalDistance.toFixed(3),
-
-            canvas_x:
-            currentMapX.toFixed(2),
-
-            canvas_y:
-            currentMapY.toFixed(2),
-
-            event:"",
-            anchor_id:"",
-            anchor_error_m:"",
-            event_duration:""
-
-        });
-
-
-        drawSegment(
-            oldX,
-            oldY,
-            currentMapX,
-            currentMapY
-        );
-
-
-        updateSmartStop(
-            effectiveEnergy,
-            now,
-            elapsed
-        );
-    }
 }
 
 
-/* ===========================================================
-CALIBRACIÓN
-=========================================================== */
 
-startCalibration
-.addEventListener(
-"click",
-function(){
-
-    calibrationEnergy=0;
-
-    calibrating=true;
+orientationAbsolute=
+event.absolute;
 
 
-    calibrationResult.textContent=
-    "CALIBRANDO PASADA "+
-    (
-        calibrationRuns.length+
-        1
-    );
+
+/*
+ ================================================
+ AQUÍ ESTÁ EL CAMBIO CLAVE DE V0.7
+ ================================================
+
+ Ambos teléfonos utilizan event.alpha.
+
+ NO usamos brújula para mover el carrito.
+*/
 
 
-    calibrationResult.className=
-    "box-wait";
+if(
+event.alpha===
+null ||
+event.alpha===
+undefined ||
+isNaN(event.alpha)
+){
+
+relativeHeadingEl.textContent=
+"NO";
 
 
-    startCalibration.disabled=true;
+return;
 
-    stopCalibration.disabled=false;
+}
 
-    startRoute.disabled=true;
+
+
+alphaRaw=
+event.alpha;
+
+
+/*
+ Mismo criterio que estábamos usando
+ en Android Samsung.
+*/
+
+
+let yaw=
+normalizeDegrees(
+360-
+alphaRaw
+);
+
+
+
+/*
+ Suavizado CIRCULAR.
+
+ Evita problemas como:
+
+ 359°
+ 0°
+ 1°
+*/
+
+
+if(sensorYaw===null){
+
+sensorYaw=
+yaw;
+
+}
+else{
+
+let diff=
+shortestAngleDegrees(
+sensorYaw,
+yaw
+);
+
+
+sensorYaw=
+normalizeDegrees(
+sensorYaw+
+diff*0.18
+);
+
+}
+
+
+
+relativeHeadingEl.textContent=
+sensorYaw.toFixed(1);
+
+
+
+/*
+ Si estamos recorriendo,
+ mostramos cuánto giramos
+ DESDE A.
+*/
+
+
+if(
+recording &&
+routeStartYaw!==null
+){
+
+const turn=
+shortestAngleDegrees(
+routeStartYaw,
+sensorYaw
+);
+
+
+routeTurnEl.textContent=
+turn.toFixed(1);
+
+}
+
+}
+
+
+
+/* ============================================================
+ MOVIMIENTO
+============================================================ */
+
+
+function motionHandler(
+event
+){
+
+const now=
+performance.now();
+
+
+sampleCounter++;
+
+
+
+if(
+now-
+frequencyStart>=
+1000
+){
+
+frequencyEl.textContent=
+sampleCounter;
+
+
+sampleCounter=
+0;
+
+
+frequencyStart=
+now;
+
+}
+
+
+
+if(
+lastMotionTime===
+null
+){
+
+lastMotionTime=
+now;
+
+
+return;
+
+}
+
+
+
+let dt=
+(now-
+lastMotionTime)/
+1000;
+
+
+lastMotionTime=
+now;
+
+
+
+if(dt>0.1){
+
+dt=
+0.1;
+
+}
+
+
+
+const a=
+event.acceleration;
+
+
+if(!a){
+
+return;
+
+}
+
+
+
+const ax=
+a.x||0;
+
+
+const ay=
+a.y||0;
+
+
+const az=
+a.z||0;
+
+
+
+const magnitude=
+Math.sqrt(
+ax*ax+
+ay*ay+
+az*az
+);
+
+
+
+filteredEnergy=
+filteredEnergy*
+0.75+
+magnitude*
+0.25;
+
+
+
+let effectiveEnergy=
+filteredEnergy-
+MOVEMENT_THRESHOLD;
+
+
+
+if(
+effectiveEnergy<
+0
+){
+
+effectiveEnergy=
+0;
+
+}
+
+
+
+energyValueEl.textContent=
+effectiveEnergy.toFixed(3);
+
+
+
+if(
+effectiveEnergy>
+0
+){
+
+movementEl.textContent=
+"MOVIÉNDOSE";
+
+
+movementEl.style.color=
+"#198754";
+
+}
+else{
+
+movementEl.textContent=
+"DETENIDO";
+
+
+movementEl.style.color=
+"#777";
+
+}
+
+
+
+/*
+ CALIBRACIÓN
+*/
+
+
+if(calibrating){
+
+calibrationEnergy+=
+effectiveEnergy*
+dt;
+
+}
+
+
+
+/*
+ RECORRIDO
+*/
+
+
+if(
+recording &&
+calibrationFactor!==null &&
+routeStartYaw!==null &&
+mapPixelsPerMeter!==null &&
+sensorYaw!==null
+){
+
+let step=
+effectiveEnergy*
+dt*
+calibrationFactor;
+
+
+
+if(step>0.20){
+
+step=
+0.20;
+
+}
+
+
+
+/*
+ ===============================================
+ GIRO RELATIVO
+ ===============================================
+
+ No importa dónde está el norte.
+
+ Sólo importa cuánto giró respecto de A.
+*/
+
+
+const relativeTurnDeg=
+shortestAngleDegrees(
+routeStartYaw,
+sensorYaw
+);
+
+
+
+const angle=
+mapBaseAngle+
+relativeTurnDeg*
+Math.PI/
+180+
+headingBiasRad;
+
+
+
+const oldX=
+currentMapX;
+
+
+const oldY=
+currentMapY;
+
+
+
+currentMapX+=
+Math.cos(angle)*
+step*
+mapPixelsPerMeter;
+
+
+currentMapY+=
+Math.sin(angle)*
+step*
+mapPixelsPerMeter;
+
+
+
+totalDistance+=
+step;
+
+
+
+const elapsed=
+(now-
+routeStartTime)/
+1000;
+
+
+
+distanceEl.textContent=
+totalDistance.toFixed(1);
+
+
+timeEl.textContent=
+elapsed.toFixed(0);
+
+
+routeTurnEl.textContent=
+relativeTurnDeg.toFixed(1);
+
+
+
+routeData.push({
+
+time:
+elapsed.toFixed(3),
+
+alpha_raw:
+alphaRaw!==null?
+alphaRaw.toFixed(3):
+"",
+
+sensor_yaw:
+sensorYaw.toFixed(3),
+
+relative_turn_deg:
+relativeTurnDeg.toFixed(3),
+
+compass_heading:
+magneticCompass!==null?
+magneticCompass.toFixed(3):
+"",
+
+compass_accuracy:
+magneticAccuracy!==null?
+magneticAccuracy.toFixed(3):
+"",
+
+orientation_absolute:
+orientationAbsolute===null?
+"":
+String(
+orientationAbsolute
+),
+
+heading_bias_deg:
+(
+headingBiasRad*
+180/
+Math.PI
+).toFixed(3),
+
+ax:
+ax.toFixed(4),
+
+ay:
+ay.toFixed(4),
+
+az:
+az.toFixed(4),
+
+energy:
+effectiveEnergy.toFixed(5),
+
+distance_step:
+step.toFixed(5),
+
+total_distance:
+totalDistance.toFixed(3),
+
+canvas_x:
+currentMapX.toFixed(2),
+
+canvas_y:
+currentMapY.toFixed(2),
+
+event:"",
+
+anchor_id:"",
+
+anchor_error_m:"",
+
+event_duration:""
+
 });
 
 
-stopCalibration
-.addEventListener(
+
+drawSegment(
+oldX,
+oldY,
+currentMapX,
+currentMapY
+);
+
+
+
+updateSmartStop(
+effectiveEnergy,
+now,
+elapsed
+);
+
+}
+
+}
+
+
+
+/* ============================================================
+ CALIBRACIÓN
+============================================================ */
+
+
+startCalibration.addEventListener(
 "click",
 function(){
 
-    calibrating=false;
+calibrationEnergy=
+0;
 
 
-    const d=
-    Number(
-        document
-        .getElementById(
-        "calibrationDistance"
-        ).value
-    );
+calibrating=
+true;
 
 
-    if(
-        calibrationEnergy<=
-        0.001
-    ){
-
-        alert(
-            "Movimiento insuficiente."
-        );
-
-        startCalibration.disabled=false;
-
-        stopCalibration.disabled=true;
-
-        return;
-    }
+calibrationResult.textContent=
+"CALIBRANDO PASADA "+
+(
+calibrationRuns.length+
+1
+);
 
 
-    const factor=
-    d/
-    calibrationEnergy;
+calibrationResult.className=
+"box-wait";
 
 
-    calibrationRuns.push(
-        factor
-    );
+startCalibration.disabled=
+true;
 
 
-    calibrationFactor=
-    median(
-        calibrationRuns
-    );
+stopCalibration.disabled=
+false;
 
 
-    refreshCalibration();
+startRoute.disabled=
+true;
+
+}
+);
 
 
-    startCalibration.disabled=false;
 
-    stopCalibration.disabled=true;
+stopCalibration.addEventListener(
+"click",
+function(){
+
+calibrating=
+false;
 
 
-    checkReady();
-});
+const distance=
+Number(
+document
+.getElementById(
+"calibrationDistance"
+)
+.value
+);
+
+
+
+if(
+calibrationEnergy<=
+0.001
+){
+
+alert(
+"Movimiento insuficiente."
+);
+
+
+startCalibration.disabled=
+false;
+
+
+stopCalibration.disabled=
+true;
+
+
+return;
+
+}
+
+
+
+const factor=
+distance/
+calibrationEnergy;
+
+
+
+calibrationRuns.push(
+factor
+);
+
+
+
+calibrationFactor=
+median(
+calibrationRuns
+);
+
+
+
+refreshCalibration();
+
+
+
+startCalibration.disabled=
+false;
+
+
+stopCalibration.disabled=
+true;
+
+
+checkReady();
+
+}
+);
+
 
 
 document
@@ -1765,898 +2866,1149 @@ document
 "click",
 function(){
 
-    calibrationRuns=[];
-
-    calibrationFactor=null;
-
-    calibrationList.innerHTML="";
+calibrationRuns=[];
 
 
-    calibrationResult.textContent=
-    "Todavía no calibrado.";
-
-    calibrationResult.className=
-    "box-wait";
+calibrationFactor=null;
 
 
-    checkReady();
-});
+calibrationList.innerHTML=
+"";
 
 
-function median(values){
-
-    const a=
-    [...values]
-    .sort(
-        (x,y)=>x-y
-    );
+calibrationResult.textContent=
+"Todavía no calibrado.";
 
 
-    const m=
-    Math.floor(
-        a.length/2
-    );
+calibrationResult.className=
+"box-wait";
 
 
-    if(a.length%2){
+checkReady();
 
-        return a[m];
-    }
-
-
-    return(
-        a[m-1]+
-        a[m]
-    )/2;
 }
+);
+
+
+
+function median(
+values
+){
+
+const sorted=
+[...values]
+.sort(
+(a,b)=>a-b
+);
+
+
+const middle=
+Math.floor(
+sorted.length/
+2
+);
+
+
+if(
+sorted.length%
+2
+){
+
+return sorted[
+middle
+];
+
+}
+
+
+return(
+sorted[
+middle-1
+]+
+sorted[
+middle
+]
+)/
+2;
+
+}
+
 
 
 function refreshCalibration(){
 
-    calibrationResult.innerHTML=
-    "✓ CALIBRADO<br>"+
-    "Pasadas: "+
-    calibrationRuns.length+
-    "<br>Factor adoptado: "+
-    calibrationFactor.toFixed(3);
+calibrationResult.innerHTML=
+"✓ CALIBRADO<br>"+
+"Pasadas: "+
+calibrationRuns.length+
+"<br>Factor adoptado: "+
+calibrationFactor.toFixed(3);
 
 
-    calibrationResult.className=
-    "box-ok";
+calibrationResult.className=
+"box-ok";
 
 
-    let html="";
+let html=
+"";
 
 
-    calibrationRuns.forEach(
-        function(f,i){
+calibrationRuns.forEach(
+function(f,i){
 
-            html+=
-            '<div style="padding:8px;border-top:1px solid #eee">'+
-            'Pasada '+
-            (i+1)+
-            ': <strong>'+
-            f.toFixed(3)+
-            '</strong></div>';
-        }
-    );
+html+=
+'<div style="padding:8px;border-top:1px solid #eee">'+
+
+'Pasada '+
+(i+1)+
+': <strong>'+
+f.toFixed(3)+
+'</strong>'+
+
+'</div>';
+
+}
+);
 
 
-    calibrationList.innerHTML=
-    html;
+calibrationList.innerHTML=
+html;
+
 }
 
 
-/* ===========================================================
-READY
-=========================================================== */
+
+/* ============================================================
+ READY
+============================================================ */
+
 
 function checkReady(){
 
-    startRoute.disabled=
-    !(
-        sensorsActive &&
-        calibrationFactor!==null &&
-        mapPixelsPerMeter!==null &&
-        !recording
-    );
+startRoute.disabled=
+!(
+sensorsActive &&
+calibrationFactor!==null &&
+mapPixelsPerMeter!==null &&
+sensorYaw!==null &&
+!recording
+);
+
 }
 
 
-/* ===========================================================
-INICIAR
-=========================================================== */
+
+/* ============================================================
+ INICIAR
+============================================================ */
+
 
 startRoute.addEventListener(
 "click",
 function(){
 
-    if(
-        headingSmooth===null
-    ){
-        return;
-    }
+
+if(
+sensorYaw===
+null
+){
+
+alert(
+"ALPHA todavía no está disponible."
+);
 
 
-    resetRouteData();
+return;
+
+}
 
 
-    routeStartHeading=
-    headingSmooth;
+
+resetRouteData();
 
 
-    headingBiasRad=0;
+
+/*
+ ESTA ES NUESTRA NUEVA REFERENCIA CERO.
+*/
 
 
-    currentMapX=
-    mapPointA.x;
-
-    currentMapY=
-    mapPointA.y;
+routeStartYaw=
+sensorYaw;
 
 
-    routeStartTime=
-    performance.now();
+
+headingBiasRad=
+0;
 
 
-    recording=true;
+
+currentMapX=
+mapPointA.x;
 
 
-    routeData.push({
-
-        time:"0.000",
-        heading:
-        headingSmooth.toFixed(2),
-
-        heading_bias_deg:"0.000",
-
-        ax:"",
-        ay:"",
-        az:"",
-        energy:"",
-        distance_step:"0",
-
-        total_distance:"0",
-
-        canvas_x:
-        currentMapX.toFixed(2),
-
-        canvas_y:
-        currentMapY.toFixed(2),
-
-        event:"START",
-
-        anchor_id:"A",
-
-        anchor_error_m:"0",
-
-        event_duration:""
-
-    });
+currentMapY=
+mapPointA.y;
 
 
-    lastAnchorRouteIndex=0;
+
+routeStartTime=
+performance.now();
 
 
-    lastAnchorActual={
-
-        x:mapPointA.x,
-
-        y:mapPointA.y
-
-    };
+recording=
+true;
 
 
-    statusEl.textContent=
-    "● GRABANDO";
 
-    statusEl.className=
-    "status ok";
+routeData.push({
 
+time:"0.000",
 
-    startRoute.disabled=true;
+alpha_raw:
+alphaRaw!==null?
+alphaRaw.toFixed(3):
+"",
 
-    stopRoute.disabled=false;
+sensor_yaw:
+sensorYaw.toFixed(3),
 
+relative_turn_deg:
+"0.000",
 
-    startCalibration.disabled=true;
+compass_heading:
+magneticCompass!==null?
+magneticCompass.toFixed(3):
+"",
 
+compass_accuracy:
+magneticAccuracy!==null?
+magneticAccuracy.toFixed(3):
+"",
 
-    updateAnchorButtons();
+orientation_absolute:
+orientationAbsolute===null?
+"":
+String(
+orientationAbsolute
+),
+
+heading_bias_deg:"0.000",
+
+ax:"",
+ay:"",
+az:"",
+
+energy:"",
+
+distance_step:"0",
+
+total_distance:"0",
+
+canvas_x:
+currentMapX.toFixed(2),
+
+canvas_y:
+currentMapY.toFixed(2),
+
+event:"START",
+
+anchor_id:"A",
+
+anchor_error_m:"0",
+
+event_duration:""
+
 });
 
 
-/* ===========================================================
-FINALIZAR
-=========================================================== */
+
+lastAnchorRouteIndex=
+0;
+
+
+
+lastAnchorActual={
+
+x:
+mapPointA.x,
+
+y:
+mapPointA.y
+
+};
+
+
+
+routeTurnEl.textContent=
+"0.0";
+
+
+headingBiasEl.textContent=
+"0.0";
+
+
+
+statusEl.textContent=
+"● GRABANDO — RELATIVE ALPHA";
+
+
+statusEl.className=
+"status ok";
+
+
+startRoute.disabled=
+true;
+
+
+stopRoute.disabled=
+false;
+
+
+startCalibration.disabled=
+true;
+
+
+updateAnchorButtons();
+
+}
+);
+
+
+
+/* ============================================================
+ FINALIZAR
+============================================================ */
+
 
 stopRoute.addEventListener(
 "click",
 function(){
 
-    if(activeStop){
-        finishActiveStop();
-    }
 
+if(activeStop){
 
-    recording=false;
+finishActiveStop();
 
-
-    stopRoute.disabled=true;
-
-
-    startCalibration.disabled=false;
-
-
-    downloadCSV.disabled=
-    routeData.length===0;
-
-
-    statusEl.textContent=
-    "● FINALIZADO — "+
-    totalDistance.toFixed(1)+
-    " m";
-
-
-    statusEl.className=
-    "status waiting";
-
-
-    updateAnchorButtons();
-
-    checkReady();
-});
-
-
-/* ===========================================================
-DIBUJO SEGMENTO
-=========================================================== */
-
-function drawSegment(
-x1,y1,x2,y2
-){
-
-    if(
-        x1===null ||
-        y1===null
-    ){
-        return;
-    }
-
-
-    ctx.strokeStyle="#15965f";
-
-    ctx.lineWidth=9;
-
-    ctx.lineCap="round";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        x1,y1
-    );
-
-    ctx.lineTo(
-        x2,y2
-    );
-
-    ctx.stroke();
 }
 
 
-/* ===========================================================
-BOTONES ANCLA
-=========================================================== */
+
+recording=
+false;
+
+
+stopRoute.disabled=
+true;
+
+
+startCalibration.disabled=
+false;
+
+
+downloadCSV.disabled=
+routeData.length===
+0;
+
+
+
+statusEl.textContent=
+"● FINALIZADO — "+
+totalDistance.toFixed(1)+
+" m";
+
+
+statusEl.className=
+"status waiting";
+
+
+updateAnchorButtons();
+
+
+checkReady();
+
+}
+);
+
+
+
+/* ============================================================
+ SEGMENTO
+============================================================ */
+
+
+function drawSegment(
+x1,
+y1,
+x2,
+y2
+){
+
+if(
+x1===null ||
+y1===null
+){
+
+return;
+
+}
+
+
+ctx.strokeStyle=
+"#15965f";
+
+
+ctx.lineWidth=
+9;
+
+
+ctx.lineCap=
+"round";
+
+
+ctx.lineJoin=
+"round";
+
+
+ctx.beginPath();
+
+
+ctx.moveTo(
+x1,
+y1
+);
+
+
+ctx.lineTo(
+x2,
+y2
+);
+
+
+ctx.stroke();
+
+}
+
+
+
+/* ============================================================
+ ANCLAS
+============================================================ */
+
 
 function updateAnchorButtons(){
 
-    Object.keys(
-        anchors
-    )
-    .forEach(
-        function(id){
-
-            const btn=
-            document
-            .getElementById(
-                "confirm"+id
-            );
-
-
-            btn.disabled=
-            !(
-                recording &&
-                anchors[id].x!==null
-            );
-        }
-    );
-}
-
-
 Object.keys(
-    anchors
+anchors
 )
 .forEach(
 function(id){
 
-    document
-    .getElementById(
-        "confirm"+id
-    )
-    .addEventListener(
-    "click",
-    function(){
+const button=
+document
+.getElementById(
+"confirm"+
+id
+);
 
-        confirmAnchor(id);
 
-    });
+button.disabled=
+!(
+recording &&
+anchors[id].x!==null
+);
+
+}
+);
+
+}
+
+
+
+Object.keys(
+anchors
+)
+.forEach(
+function(id){
+
+document
+.getElementById(
+"confirm"+
+id
+)
+.addEventListener(
+"click",
+function(){
+
+confirmAnchor(
+id
+);
+
+}
+);
+
+}
+);
+
+
+
+function confirmAnchor(
+id
+){
+
+if(!recording){
+
+return;
+
+}
+
+
+const anchor=
+anchors[id];
+
+
+if(
+anchor.x===
+null
+){
+
+return;
+
+}
+
+
+
+const estimatedX=
+currentMapX;
+
+
+const estimatedY=
+currentMapY;
+
+
+
+const correctionX=
+anchor.x-
+estimatedX;
+
+
+const correctionY=
+anchor.y-
+estimatedY;
+
+
+
+const errorPixels=
+Math.sqrt(
+correctionX*
+correctionX+
+correctionY*
+correctionY
+);
+
+
+
+const errorMeters=
+errorPixels/
+mapPixelsPerMeter;
+
+
+
+/*
+ =============================================
+ CORRECCIÓN ANGULAR
+ =============================================
+*/
+
+
+let angleCorrection=
+0;
+
+
+
+if(lastAnchorActual){
+
+const estimatedDX=
+estimatedX-
+lastAnchorActual.x;
+
+
+const estimatedDY=
+estimatedY-
+lastAnchorActual.y;
+
+
+const realDX=
+anchor.x-
+lastAnchorActual.x;
+
+
+const realDY=
+anchor.y-
+lastAnchorActual.y;
+
+
+
+const estimatedLength=
+Math.sqrt(
+estimatedDX*
+estimatedDX+
+estimatedDY*
+estimatedDY
+);
+
+
+const realLength=
+Math.sqrt(
+realDX*
+realDX+
+realDY*
+realDY
+);
+
+
+
+if(
+estimatedLength>
+mapPixelsPerMeter*
+2 &&
+realLength>
+mapPixelsPerMeter*
+2
+){
+
+const estimatedAngle=
+Math.atan2(
+estimatedDY,
+estimatedDX
+);
+
+
+const realAngle=
+Math.atan2(
+realDY,
+realDX
+);
+
+
+let delta=
+normalizeRadians(
+realAngle-
+estimatedAngle
+);
+
+
+
+const maxCorrection=
+MAX_HEADING_CORRECTION_DEG*
+Math.PI/
+180;
+
+
+
+delta=
+Math.max(
+-maxCorrection,
+Math.min(
+maxCorrection,
+delta
+)
+);
+
+
+
+angleCorrection=
+delta*
+HEADING_CORRECTION_GAIN;
+
+
+
+headingBiasRad+=
+angleCorrection;
+
+}
+
+}
+
+
+
+/*
+ =============================================
+ CORREGIR TRAMO ANTERIOR
+ =============================================
+*/
+
+
+const endIndex=
+routeData.length-
+1;
+
+
+
+if(
+endIndex>
+lastAnchorRouteIndex
+){
+
+const startDistance=
+Number(
+routeData[
+lastAnchorRouteIndex
+]
+.total_distance
+);
+
+
+const endDistance=
+Number(
+routeData[
+endIndex
+]
+.total_distance
+);
+
+
+const segmentDistance=
+Math.max(
+0.001,
+endDistance-
+startDistance
+);
+
+
+
+for(
+let i=
+lastAnchorRouteIndex;
+i<=
+endIndex;
+i++
+){
+
+const distance=
+Number(
+routeData[i]
+.total_distance
+);
+
+
+let t=
+(
+distance-
+startDistance
+)/
+segmentDistance;
+
+
+t=
+Math.max(
+0,
+Math.min(
+1,
+t
+)
+);
+
+
+
+routeData[i].canvas_x=
+(
+Number(
+routeData[i]
+.canvas_x
+)+
+correctionX*
+t
+).toFixed(2);
+
+
+
+routeData[i].canvas_y=
+(
+Number(
+routeData[i]
+.canvas_y
+)+
+correctionY*
+t
+).toFixed(2);
+
+}
+
+
+
+stops.forEach(
+function(stop){
+
+if(
+stop.distance>=
+startDistance &&
+stop.distance<=
+endDistance
+){
+
+let t=
+(
+stop.distance-
+startDistance
+)/
+segmentDistance;
+
+
+t=
+Math.max(
+0,
+Math.min(
+1,
+t
+)
+);
+
+
+stop.x+=
+correctionX*
+t;
+
+
+stop.y+=
+correctionY*
+t;
+
+}
+
+}
+);
+
+}
+
+
+
+/*
+ SNAP EXACTO
+*/
+
+
+currentMapX=
+anchor.x;
+
+
+currentMapY=
+anchor.y;
+
+
+
+if(
+endIndex>=
+0
+){
+
+routeData[
+endIndex
+].canvas_x=
+anchor.x.toFixed(2);
+
+
+routeData[
+endIndex
+].canvas_y=
+anchor.y.toFixed(2);
+
+}
+
+
+
+/*
+ Paradas activas también se desplazan.
+*/
+
+
+if(activeStop){
+
+activeStop.mapX+=
+correctionX;
+
+
+activeStop.mapY+=
+correctionY;
+
+}
+
+
+if(stopCandidate){
+
+stopCandidate.mapX+=
+correctionX;
+
+
+stopCandidate.mapY+=
+correctionY;
+
+}
+
+
+
+/*
+ EVENTO
+*/
+
+
+const elapsed=
+(
+performance.now()-
+routeStartTime
+)/
+1000;
+
+
+
+anchorEvents.push({
+
+id:id,
+
+name:
+anchor.name,
+
+time:
+elapsed,
+
+error:
+errorMeters,
+
+angleCorrection:
+angleCorrection*
+180/
+Math.PI,
+
+actualX:
+anchor.x,
+
+actualY:
+anchor.y
 
 });
 
 
-/* ===========================================================
-CONFIRMAR ANCLA
-=========================================================== */
 
-function confirmAnchor(id){
+eventData.push({
 
-    if(!recording){
-        return;
-    }
+time:
+elapsed.toFixed(3),
 
+alpha_raw:
+alphaRaw!==null?
+alphaRaw.toFixed(3):
+"",
 
-    const anchor=
-    anchors[id];
+sensor_yaw:
+sensorYaw!==null?
+sensorYaw.toFixed(3):
+"",
 
+relative_turn_deg:
+routeStartYaw!==null?
+shortestAngleDegrees(
+routeStartYaw,
+sensorYaw
+).toFixed(3):
+"",
 
-    if(anchor.x===null){
-        return;
-    }
+compass_heading:
+magneticCompass!==null?
+magneticCompass.toFixed(3):
+"",
 
+compass_accuracy:
+magneticAccuracy!==null?
+magneticAccuracy.toFixed(3):
+"",
 
-    const estimatedX=
-    currentMapX;
+orientation_absolute:
+orientationAbsolute===null?
+"":
+String(
+orientationAbsolute
+),
 
-    const estimatedY=
-    currentMapY;
+heading_bias_deg:
+(
+headingBiasRad*
+180/
+Math.PI
+).toFixed(3),
 
+ax:"",
+ay:"",
+az:"",
+energy:"",
+distance_step:"",
 
-    const correctionX=
-    anchor.x-
-    estimatedX;
+total_distance:
+totalDistance.toFixed(3),
 
-    const correctionY=
-    anchor.y-
-    estimatedY;
+canvas_x:
+anchor.x.toFixed(2),
 
+canvas_y:
+anchor.y.toFixed(2),
 
-    const errorPx=
-    Math.sqrt(
-        correctionX*
-        correctionX+
-        correctionY*
-        correctionY
-    );
+event:"ANCHOR",
 
+anchor_id:
+id,
 
-    const errorMeters=
-    errorPx/
-    mapPixelsPerMeter;
+anchor_error_m:
+errorMeters.toFixed(3),
 
+event_duration:""
 
-    /*
-    -----------------------------------------------------------
-    CORRECCIÓN ANGULAR
-    -----------------------------------------------------------
-    Comparamos:
+});
 
-    vector que el sensor creyó recorrer desde
-    el último ancla
 
-    versus
 
-    vector real entre ambas anclas.
-    */
+lastAnchorRouteIndex=
+endIndex;
 
 
-    let angleCorrection=0;
 
+lastAnchorActual={
 
-    if(lastAnchorActual){
+x:
+anchor.x,
 
-        const estDX=
-        estimatedX-
-        lastAnchorActual.x;
+y:
+anchor.y
 
-        const estDY=
-        estimatedY-
-        lastAnchorActual.y;
+};
 
 
-        const realDX=
-        anchor.x-
-        lastAnchorActual.x;
 
-        const realDY=
-        anchor.y-
-        lastAnchorActual.y;
+headingBiasEl.textContent=
+(
+headingBiasRad*
+180/
+Math.PI
+).toFixed(1);
 
 
-        const estimatedLength=
-        Math.sqrt(
-            estDX*estDX+
-            estDY*estDY
-        );
 
+refreshAnchorErrors();
 
-        const realLength=
-        Math.sqrt(
-            realDX*realDX+
-            realDY*realDY
-        );
 
 
-        /*
-        Sólo corregimos dirección si los puntos
-        están suficientemente separados.
-        */
+redrawEverything();
 
-        if(
-            estimatedLength >
-            mapPixelsPerMeter*2 &&
-            realLength >
-            mapPixelsPerMeter*2
-        ){
 
-            const estAngle=
-            Math.atan2(
-                estDY,
-                estDX
-            );
 
+statusEl.textContent=
+"● "+
+id+
+" corregido — error "+
+errorMeters.toFixed(1)+
+" m";
 
-            const realAngle=
-            Math.atan2(
-                realDY,
-                realDX
-            );
 
 
-            let delta=
-            normalizeRadians(
-                realAngle-
-                estAngle
-            );
+setTimeout(
+function(){
 
+if(recording){
 
-            const max=
-            MAX_HEADING_CORRECTION_DEG*
-            Math.PI/
-            180;
+statusEl.textContent=
+"● GRABANDO — RELATIVE ALPHA";
 
+}
 
-            delta=
-            Math.max(
-                -max,
-                Math.min(
-                    max,
-                    delta
-                )
-            );
+},
+1500
+);
 
-
-            angleCorrection=
-            delta*
-            HEADING_CORRECTION_GAIN;
-
-
-            headingBiasRad+=
-            angleCorrection;
-        }
-    }
-
-
-    /*
-    -----------------------------------------------------------
-    CORREGIR EL SEGMENTO ANTERIOR
-    -----------------------------------------------------------
-
-    Distribuimos progresivamente el error desde
-    el último ancla hasta el punto actual.
-
-    El inicio permanece igual.
-    El final termina exactamente sobre el ancla.
-    */
-
-
-    const endIndex=
-    routeData.length-1;
-
-
-    if(
-        endIndex >
-        lastAnchorRouteIndex
-    ){
-
-        const startDist=
-        Number(
-            routeData[
-                lastAnchorRouteIndex
-            ].total_distance
-        );
-
-
-        const endDist=
-        Number(
-            routeData[
-                endIndex
-            ].total_distance
-        );
-
-
-        const segmentDistance=
-        Math.max(
-            0.001,
-            endDist-
-            startDist
-        );
-
-
-        for(
-            let i=
-            lastAnchorRouteIndex;
-            i<=endIndex;
-            i++
-        ){
-
-            const d=
-            Number(
-                routeData[i]
-                .total_distance
-            );
-
-
-            let t=
-            (d-
-            startDist)/
-            segmentDistance;
-
-
-            t=
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    t
-                )
-            );
-
-
-            routeData[i].canvas_x=
-            (
-                Number(
-                    routeData[i]
-                    .canvas_x
-                )+
-                correctionX*t
-            ).toFixed(2);
-
-
-            routeData[i].canvas_y=
-            (
-                Number(
-                    routeData[i]
-                    .canvas_y
-                )+
-                correctionY*t
-            ).toFixed(2);
-        }
-
-
-        /*
-        También desplazamos paradas de este segmento.
-        */
-
-        stops.forEach(
-        function(stop){
-
-            if(
-                stop.distance>=
-                startDist &&
-                stop.distance<=
-                endDist
-            ){
-
-                let t=
-                (
-                    stop.distance-
-                    startDist
-                )/
-                segmentDistance;
-
-
-                t=
-                Math.max(
-                    0,
-                    Math.min(
-                        1,
-                        t
-                    )
-                );
-
-
-                stop.x+=
-                correctionX*t;
-
-                stop.y+=
-                correctionY*t;
-            }
-        });
-    }
-
-
-    /*
-    SNAP EXACTO
-    */
-
-    currentMapX=
-    anchor.x;
-
-    currentMapY=
-    anchor.y;
-
-
-    if(endIndex>=0){
-
-        routeData[
-            endIndex
-        ].canvas_x=
-        anchor.x.toFixed(2);
-
-
-        routeData[
-            endIndex
-        ].canvas_y=
-        anchor.y.toFixed(2);
-    }
-
-
-    /*
-    Si estamos dentro de una parada,
-    mover también su centro para evitar que
-    el SNAP termine artificialmente la parada.
-    */
-
-    if(activeStop){
-
-        activeStop.mapX+=
-        correctionX;
-
-        activeStop.mapY+=
-        correctionY;
-    }
-
-
-    if(stopCandidate){
-
-        stopCandidate.mapX+=
-        correctionX;
-
-        stopCandidate.mapY+=
-        correctionY;
-    }
-
-
-    /*
-    EVENTO
-    */
-
-    const elapsed=
-    (
-        performance.now()-
-        routeStartTime
-    )/
-    1000;
-
-
-    anchorEvents.push({
-
-        id:id,
-
-        name:anchor.name,
-
-        time:elapsed,
-
-        error:errorMeters,
-
-        angleCorrection:
-        angleCorrection*
-        180/
-        Math.PI,
-
-        actualX:anchor.x,
-
-        actualY:anchor.y
-
-    });
-
-
-    eventData.push({
-
-        time:
-        elapsed.toFixed(3),
-
-        heading:
-        headingSmooth.toFixed(2),
-
-        heading_bias_deg:
-        (
-            headingBiasRad*
-            180/
-            Math.PI
-        ).toFixed(3),
-
-        ax:"",
-        ay:"",
-        az:"",
-        energy:"",
-        distance_step:"",
-
-        total_distance:
-        totalDistance.toFixed(3),
-
-        canvas_x:
-        anchor.x.toFixed(2),
-
-        canvas_y:
-        anchor.y.toFixed(2),
-
-        event:"ANCHOR",
-
-        anchor_id:id,
-
-        anchor_error_m:
-        errorMeters.toFixed(3),
-
-        event_duration:""
-
-    });
-
-
-    lastAnchorRouteIndex=
-    endIndex;
-
-
-    lastAnchorActual={
-
-        x:anchor.x,
-
-        y:anchor.y
-
-    };
-
-
-    headingBiasEl.textContent=
-    (
-        headingBiasRad*
-        180/
-        Math.PI
-    ).toFixed(1);
-
-
-    refreshAnchorErrors();
-
-
-    redrawEverything();
-
-
-    statusEl.textContent=
-    "● "+
-    id+
-    " corregido — error "+
-    errorMeters.toFixed(1)+
-    " m";
-
-
-    setTimeout(
-    function(){
-
-        if(recording){
-
-            statusEl.textContent=
-            "● GRABANDO";
-        }
-
-    },1500);
 }
 
 
-/* ===========================================================
-NORMALIZAR ÁNGULO
-=========================================================== */
 
-function normalizeRadians(a){
+/* ============================================================
+ TABLA ERROR
+============================================================ */
 
-    while(a>Math.PI){
-        a-=2*Math.PI;
-    }
-
-    while(a< -Math.PI){
-        a+=2*Math.PI;
-    }
-
-    return a;
-}
-
-
-/* ===========================================================
-TABLA ERRORES
-=========================================================== */
 
 function refreshAnchorErrors(){
 
-    if(
-        anchorEvents.length===0
-    ){
+if(
+anchorEvents.length===
+0
+){
 
-        anchorErrorList.innerHTML=
-        '<div class="note">Todavía no hay mediciones.</div>';
-
-        return;
-    }
+anchorErrorList.innerHTML=
+'<div class="note">Todavía no hay mediciones.</div>';
 
 
-    let html=
+return;
 
-    '<div class="anchor-row head">'+
-    '<div>#</div>'+
-    '<div>Zona</div>'+
-    '<div>Error</div>'+
-    '<div>Corr.</div>'+
-    '</div>';
-
-
-    anchorEvents.forEach(
-    function(e){
-
-        html+=
-
-        '<div class="anchor-row">'+
-
-        '<div><strong>'+
-        e.id+
-        '</strong></div>'+
-
-        '<div>'+
-        e.name+
-        '</div>'+
-
-        '<div><strong>'+
-        e.error.toFixed(1)+
-        ' m</strong></div>'+
-
-        '<div>'+
-        (
-            e.angleCorrection>=0?
-            "+":
-            ""
-        )+
-        e.angleCorrection.toFixed(1)+
-        '°</div>'+
-
-        '</div>';
-
-    });
-
-
-    anchorErrorList.innerHTML=
-    html;
 }
 
 
-/* ===========================================================
-PARADAS
-=========================================================== */
+
+let html=
+
+'<div class="anchor-row head">'+
+
+'<div>#</div>'+
+
+'<div>Zona</div>'+
+
+'<div>Error</div>'+
+
+'<div>Corr.</div>'+
+
+'</div>';
+
+
+
+anchorEvents.forEach(
+function(e){
+
+html+=
+
+'<div class="anchor-row">'+
+
+'<div><strong>'+
+e.id+
+'</strong></div>'+
+
+'<div>'+
+e.name+
+'</div>'+
+
+'<div><strong>'+
+e.error.toFixed(1)+
+' m</strong></div>'+
+
+'<div>'+
+(
+e.angleCorrection>=0?
+"+":
+""
+)+
+e.angleCorrection.toFixed(1)+
+'°</div>'+
+
+'</div>';
+
+}
+);
+
+
+anchorErrorList.innerHTML=
+html;
+
+}
+
+
+
+/* ============================================================
+ PARADAS
+============================================================ */
+
 
 function updateSmartStop(
 effectiveEnergy,
@@ -2664,469 +4016,716 @@ now,
 elapsed
 ){
 
-    /*
-    PARADA YA ACTIVA
-    */
-
-    if(activeStop){
-
-        const dx=
-        currentMapX-
-        activeStop.mapX;
-
-        const dy=
-        currentMapY-
-        activeStop.mapY;
+/*
+ YA HAY PARADA
+*/
 
 
-        const displacement=
-        Math.sqrt(
-            dx*dx+
-            dy*dy
-        )/
-        mapPixelsPerMeter;
+if(activeStop){
+
+const dx=
+currentMapX-
+activeStop.mapX;
 
 
-        activeStopInfo.innerHTML=
-        "🛑 PARADA "+
-        activeStop.number+
-        " ACTIVA<br>"+
-        "Desplazamiento "+
-        displacement.toFixed(2)+
-        " / "+
-        STOP_ZONE_RADIUS_METERS+
-        " m";
+const dy=
+currentMapY-
+activeStop.mapY;
 
 
-        if(
-            displacement>
-            STOP_ZONE_RADIUS_METERS
-        ){
-
-            finishActiveStop();
-        }
-
-
-        return;
-    }
+const displacement=
+Math.sqrt(
+dx*dx+
+dy*dy
+)/
+mapPixelsPerMeter;
 
 
-    /*
-    CANDIDATO
-    */
 
-    if(!stopCandidate){
-
-        if(effectiveEnergy===0){
-
-            stopCandidate={
-
-                startNow:now,
-
-                startElapsed:
-                elapsed,
-
-                startDistance:
-                totalDistance,
-
-                mapX:
-                currentMapX,
-
-                mapY:
-                currentMapY
-
-            };
-        }
-
-        return;
-    }
+activeStopInfo.innerHTML=
+"🛑 PARADA "+
+activeStop.number+
+" ACTIVA<br>"+
+"Desplazamiento "+
+displacement.toFixed(2)+
+" / "+
+STOP_ZONE_RADIUS_METERS+
+" m";
 
 
-    /*
-    Ya existe candidato.
-    Incluso si se mueve un poco,
-    no lo cancelamos automáticamente.
-    */
 
+if(
+displacement>
+STOP_ZONE_RADIUS_METERS
+){
 
-    const dx=
-    currentMapX-
-    stopCandidate.mapX;
+finishActiveStop();
 
-    const dy=
-    currentMapY-
-    stopCandidate.mapY;
-
-
-    const candidateMove=
-    Math.sqrt(
-        dx*dx+
-        dy*dy
-    )/
-    mapPixelsPerMeter;
-
-
-    /*
-    Si antes de completar 3 segundos
-    ya se alejó 0.75m, no era parada.
-    */
-
-    if(
-        candidateMove>
-        STOP_CONFIRM_RADIUS_METERS
-    ){
-
-        stopCandidate=null;
-
-        return;
-    }
-
-
-    const duration=
-    (
-        now-
-        stopCandidate.startNow
-    )/
-    1000;
-
-
-    if(
-        duration>=
-        STOP_CONFIRM_SECONDS
-    ){
-
-        activeStop={
-
-            number:
-            stops.length+1,
-
-            startElapsed:
-            stopCandidate.startElapsed,
-
-            startDistance:
-            stopCandidate.startDistance,
-
-            mapX:
-            stopCandidate.mapX,
-
-            mapY:
-            stopCandidate.mapY
-
-        };
-
-
-        stopCandidate=null;
-
-
-        activeStopInfo.innerHTML=
-        "🛑 PARADA "+
-        activeStop.number+
-        " ACTIVA";
-
-
-        activeStopInfo.className=
-        "box-ok";
-    }
 }
+
+
+return;
+
+}
+
+
+
+/*
+ NO HAY CANDIDATO
+*/
+
+
+if(!stopCandidate){
+
+if(
+effectiveEnergy===
+0
+){
+
+stopCandidate={
+
+startNow:
+now,
+
+startElapsed:
+elapsed,
+
+startDistance:
+totalDistance,
+
+mapX:
+currentMapX,
+
+mapY:
+currentMapY
+
+};
+
+}
+
+
+return;
+
+}
+
+
+
+/*
+ CANDIDATO EXISTENTE
+*/
+
+
+const dx=
+currentMapX-
+stopCandidate.mapX;
+
+
+const dy=
+currentMapY-
+stopCandidate.mapY;
+
+
+
+const candidateMove=
+Math.sqrt(
+dx*dx+
+dy*dy
+)/
+mapPixelsPerMeter;
+
+
+
+if(
+candidateMove>
+STOP_CONFIRM_RADIUS_METERS
+){
+
+stopCandidate=
+null;
+
+
+return;
+
+}
+
+
+
+const duration=
+(
+now-
+stopCandidate.startNow
+)/
+1000;
+
+
+
+if(
+duration>=
+STOP_CONFIRM_SECONDS
+){
+
+activeStop={
+
+number:
+stops.length+
+1,
+
+startElapsed:
+stopCandidate
+.startElapsed,
+
+startDistance:
+stopCandidate
+.startDistance,
+
+mapX:
+stopCandidate
+.mapX,
+
+mapY:
+stopCandidate
+.mapY
+
+};
+
+
+
+stopCandidate=
+null;
+
+
+
+activeStopInfo.innerHTML=
+"🛑 PARADA "+
+activeStop.number+
+" ACTIVA";
+
+
+activeStopInfo.className=
+"box-ok";
+
+}
+
+}
+
+
+
+/* ============================================================
+ FIN PARADA
+============================================================ */
 
 
 function finishActiveStop(){
 
-    if(!activeStop){
-        return;
-    }
+if(!activeStop){
 
+return;
 
-    const now=
-    (
-        performance.now()-
-        routeStartTime
-    )/
-    1000;
-
-
-    const duration=
-    now-
-    activeStop.startElapsed;
-
-
-    const stop={
-
-        number:
-        activeStop.number,
-
-        elapsed:
-        activeStop.startElapsed,
-
-        duration:
-        duration,
-
-        distance:
-        activeStop.startDistance,
-
-        x:
-        activeStop.mapX,
-
-        y:
-        activeStop.mapY
-
-    };
-
-
-    stops.push(stop);
-
-
-    totalStoppedSeconds+=
-    duration;
-
-
-    eventData.push({
-
-        time:
-        stop.elapsed.toFixed(3),
-
-        heading:"",
-        heading_bias_deg:"",
-
-        ax:"",
-        ay:"",
-        az:"",
-        energy:"",
-        distance_step:"",
-
-        total_distance:
-        stop.distance.toFixed(3),
-
-        canvas_x:
-        stop.x.toFixed(2),
-
-        canvas_y:
-        stop.y.toFixed(2),
-
-        event:"STOP",
-
-        anchor_id:"",
-
-        anchor_error_m:"",
-
-        event_duration:
-        stop.duration.toFixed(2)
-
-    });
-
-
-    activeStop=null;
-
-
-    activeStopInfo.textContent=
-    "Sin parada activa.";
-
-
-    activeStopInfo.className=
-    "box-wait";
-
-
-    refreshStops();
-
-    redrawEverything();
 }
 
 
-function drawStop(stop){
 
-    const radius=
-    Math.min(
-        30,
-        10+
-        stop.duration*0.25
-    );
-
-
-    ctx.fillStyle=
-    "rgba(220,53,69,0.88)";
+const now=
+(
+performance.now()-
+routeStartTime
+)/
+1000;
 
 
-    ctx.beginPath();
 
-    ctx.arc(
-        stop.x,
-        stop.y,
-        radius,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
+const duration=
+now-
+activeStop
+.startElapsed;
 
 
-    ctx.fillStyle="#fff";
 
-    ctx.textAlign="center";
+const stop={
 
-    ctx.textBaseline="middle";
+number:
+activeStop.number,
 
-    ctx.font="bold 17px sans-serif";
+elapsed:
+activeStop
+.startElapsed,
+
+duration:
+duration,
+
+distance:
+activeStop
+.startDistance,
+
+x:
+activeStop.mapX,
+
+y:
+activeStop.mapY
+
+};
 
 
-    ctx.fillText(
-        stop.number,
-        stop.x,
-        stop.y
-    );
+
+stops.push(
+stop
+);
 
 
-    ctx.textAlign="left";
 
-    ctx.textBaseline="alphabetic";
+totalStoppedSeconds+=
+duration;
 
 
-    ctx.fillStyle="#111";
 
-    ctx.fillText(
-        stop.duration.toFixed(0)+
-        "s",
-        stop.x+
-        radius+
-        5,
-        stop.y
-    );
+eventData.push({
+
+time:
+stop.elapsed.toFixed(3),
+
+alpha_raw:"",
+
+sensor_yaw:"",
+
+relative_turn_deg:"",
+
+compass_heading:"",
+
+compass_accuracy:"",
+
+orientation_absolute:"",
+
+heading_bias_deg:"",
+
+ax:"",
+ay:"",
+az:"",
+energy:"",
+distance_step:"",
+
+total_distance:
+stop.distance.toFixed(3),
+
+canvas_x:
+stop.x.toFixed(2),
+
+canvas_y:
+stop.y.toFixed(2),
+
+event:"STOP",
+
+anchor_id:"",
+
+anchor_error_m:"",
+
+event_duration:
+stop.duration.toFixed(2)
+
+});
+
+
+
+activeStop=
+null;
+
+
+
+activeStopInfo.textContent=
+"Sin parada activa.";
+
+
+activeStopInfo.className=
+"box-wait";
+
+
+
+refreshStops();
+
+
+redrawEverything();
+
 }
+
+
+
+/* ============================================================
+ DIBUJAR PARADA
+============================================================ */
+
+
+function drawStop(
+stop
+){
+
+const radius=
+Math.min(
+30,
+10+
+stop.duration*
+0.25
+);
+
+
+
+ctx.fillStyle=
+"rgba(220,53,69,0.88)";
+
+
+ctx.beginPath();
+
+
+ctx.arc(
+stop.x,
+stop.y,
+radius,
+0,
+Math.PI*2
+);
+
+
+ctx.fill();
+
+
+
+ctx.fillStyle=
+"#fff";
+
+
+ctx.textAlign=
+"center";
+
+
+ctx.textBaseline=
+"middle";
+
+
+ctx.font=
+"bold 17px sans-serif";
+
+
+ctx.fillText(
+stop.number,
+stop.x,
+stop.y
+);
+
+
+
+ctx.textAlign=
+"left";
+
+
+ctx.textBaseline=
+"alphabetic";
+
+
+ctx.fillStyle=
+"#111";
+
+
+ctx.fillText(
+stop.duration.toFixed(0)+
+"s",
+stop.x+
+radius+
+5,
+stop.y
+);
+
+}
+
+
+
+/* ============================================================
+ LISTA PARADAS
+============================================================ */
 
 
 function refreshStops(){
 
-    stopCountEl.textContent=
-    stops.length;
+stopCountEl.textContent=
+stops.length;
 
 
-    stoppedTimeEl.textContent=
-    totalStoppedSeconds.toFixed(0);
+
+stoppedTimeEl.textContent=
+totalStoppedSeconds.toFixed(0);
 
 
-    if(stops.length===0){
 
-        stopListEl.innerHTML=
-        '<div class="note">Todavía no hay paradas.</div>';
+if(
+stops.length===
+0
+){
 
-        return;
-    }
-
-
-    let html=
-
-    '<div class="row head">'+
-    '<div>#</div>'+
-    '<div>Momento</div>'+
-    '<div>Duración</div>'+
-    '</div>';
+stopListEl.innerHTML=
+'<div class="note">Todavía no hay paradas.</div>';
 
 
-    stops.forEach(
-    function(s){
+return;
 
-        html+=
-
-        '<div class="row">'+
-
-        '<div>'+
-        '<span class="badge">'+
-        s.number+
-        '</span>'+
-        '</div>'+
-
-        '<div>'+
-        clock(
-            s.elapsed
-        )+
-        '</div>'+
-
-        '<div><strong>'+
-        s.duration.toFixed(1)+
-        ' s</strong></div>'+
-
-        '</div>';
-
-    });
-
-
-    stopListEl.innerHTML=
-    html;
 }
 
 
-function clock(sec){
 
-    const m=
-    Math.floor(sec/60);
+let html=
 
-    const s=
-    Math.floor(sec%60);
+'<div class="row head">'+
+
+'<div>#</div>'+
+
+'<div>Momento</div>'+
+
+'<div>Duración</div>'+
+
+'</div>';
 
 
-    return(
-        m+
-        ":"+
-        String(s)
-        .padStart(2,"0")
-    );
+
+stops.forEach(
+function(stop){
+
+html+=
+
+'<div class="row">'+
+
+'<div>'+
+'<span class="badge">'+
+stop.number+
+'</span>'+
+'</div>'+
+
+'<div>'+
+clock(
+stop.elapsed
+)+
+'</div>'+
+
+'<div><strong>'+
+stop.duration.toFixed(1)+
+' s</strong></div>'+
+
+'</div>';
+
+}
+);
+
+
+
+stopListEl.innerHTML=
+html;
+
 }
 
 
-/* ===========================================================
-RESET
-=========================================================== */
+
+/* ============================================================
+ HELPERS ÁNGULO
+============================================================ */
+
+
+function normalizeDegrees(
+degrees
+){
+
+return(
+(
+degrees%
+360
+)+
+360
+)%
+360;
+
+}
+
+
+
+function shortestAngleDegrees(
+from,
+to
+){
+
+return(
+(
+to-
+from+
+540
+)%
+360
+)-
+180;
+
+}
+
+
+
+function normalizeRadians(
+angle
+){
+
+while(
+angle>
+Math.PI
+){
+
+angle-=
+2*
+Math.PI;
+
+}
+
+
+while(
+angle<
+-Math.PI
+){
+
+angle+=
+2*
+Math.PI;
+
+}
+
+
+return angle;
+
+}
+
+
+
+/* ============================================================
+ CLOCK
+============================================================ */
+
+
+function clock(
+seconds
+){
+
+const minutes=
+Math.floor(
+seconds/
+60
+);
+
+
+const secs=
+Math.floor(
+seconds%
+60
+);
+
+
+return(
+minutes+
+":"+
+String(
+secs
+)
+.padStart(
+2,
+"0"
+)
+);
+
+}
+
+
+
+/* ============================================================
+ RESET
+============================================================ */
+
 
 function resetRouteData(){
 
-    routeData=[];
-    eventData=[];
-    anchorEvents=[];
+routeData=[];
 
-    stops=[];
+eventData=[];
 
-    totalStoppedSeconds=0;
+anchorEvents=[];
 
-    stopCandidate=null;
-    activeStop=null;
-
-    totalDistance=0;
-
-    currentMapX=null;
-    currentMapY=null;
-
-    headingBiasRad=0;
-
-    headingBiasEl.textContent=
-    "0.0";
+stops=[];
 
 
-    distanceEl.textContent=
-    "0.0";
-
-    timeEl.textContent=
-    "0";
-
-    stopCountEl.textContent=
-    "0";
-
-    stoppedTimeEl.textContent=
-    "0";
+totalStoppedSeconds=
+0;
 
 
-    anchorErrorList.innerHTML=
-    '<div class="note">Todavía no hay mediciones.</div>';
+stopCandidate=
+null;
 
 
-    stopListEl.innerHTML=
-    '<div class="note">Todavía no hay paradas.</div>';
+activeStop=
+null;
 
 
-    activeStopInfo.textContent=
-    "Sin parada activa.";
+totalDistance=
+0;
 
 
-    redrawEverything();
+currentMapX=
+null;
+
+
+currentMapY=
+null;
+
+
+headingBiasRad=
+0;
+
+
+routeStartYaw=
+null;
+
+
+
+headingBiasEl.textContent=
+"0.0";
+
+
+routeTurnEl.textContent=
+"---";
+
+
+distanceEl.textContent=
+"0.0";
+
+
+timeEl.textContent=
+"0";
+
+
+stopCountEl.textContent=
+"0";
+
+
+stoppedTimeEl.textContent=
+"0";
+
+
+anchorErrorList.innerHTML=
+'<div class="note">Todavía no hay mediciones.</div>';
+
+
+stopListEl.innerHTML=
+'<div class="note">Todavía no hay paradas.</div>';
+
+
+activeStopInfo.textContent=
+"Sin parada activa.";
+
+
+activeStopInfo.className=
+"box-wait";
+
+
+redrawEverything();
+
 }
+
 
 
 document
@@ -3137,151 +4736,220 @@ document
 "click",
 function(){
 
-    recording=false;
-
-    resetRouteData();
-
-    stopRoute.disabled=true;
-
-    downloadCSV.disabled=true;
-
-    startCalibration.disabled=
-    !sensorsActive;
+recording=
+false;
 
 
-    updateAnchorButtons();
-
-    checkReady();
+resetRouteData();
 
 
-    statusEl.textContent=
-    "● Listo";
-
-    statusEl.className=
-    "status waiting";
-});
+stopRoute.disabled=
+true;
 
 
-/* ===========================================================
-CSV
-=========================================================== */
+downloadCSV.disabled=
+true;
 
-downloadCSV
-.addEventListener(
+
+startCalibration.disabled=
+!sensorsActive;
+
+
+updateAnchorButtons();
+
+
+checkReady();
+
+
+statusEl.textContent=
+"● Listo";
+
+
+statusEl.className=
+"status waiting";
+
+}
+);
+
+
+
+/* ============================================================
+ CSV
+============================================================ */
+
+
+downloadCSV.addEventListener(
 "click",
 function(){
 
-    const rows=
-    routeData.concat(
-        eventData
-    );
+const rows=
+routeData.concat(
+eventData
+);
 
 
-    rows.sort(
-    function(a,b){
 
-        return(
-            Number(a.time)-
-            Number(b.time)
-        );
-    });
+rows.sort(
+function(a,b){
 
+return(
+Number(
+a.time
+)-
+Number(
+b.time
+)
+);
 
-    if(rows.length===0){
-        return;
-    }
-
-
-    const headers=[
-
-        "time",
-        "heading",
-        "heading_bias_deg",
-        "ax",
-        "ay",
-        "az",
-        "energy",
-        "distance_step",
-        "total_distance",
-        "canvas_x",
-        "canvas_y",
-        "event",
-        "anchor_id",
-        "anchor_error_m",
-        "event_duration"
-
-    ];
+}
+);
 
 
-    let csv=
-    headers.join(",")+
-    "\n";
+
+if(
+rows.length===
+0
+){
+
+return;
+
+}
 
 
-    rows.forEach(
-    function(row){
 
-        csv+=
-        headers.map(
-        function(key){
+const headers=[
 
-            return(
-                row[key]!==undefined?
-                row[key]:
-                ""
-            );
+"time",
 
-        }).join(",")+
-        "\n";
+"alpha_raw",
 
-    });
+"sensor_yaw",
 
+"relative_turn_deg",
 
-    const blob=
-    new Blob(
-        [csv],
-        {
-            type:
-            "text/csv;charset=utf-8;"
-        }
-    );
+"compass_heading",
 
+"compass_accuracy",
 
-    const url=
-    URL.createObjectURL(
-        blob
-    );
+"orientation_absolute",
 
+"heading_bias_deg",
 
-    const link=
-    document.createElement(
-        "a"
-    );
+"ax",
 
+"ay",
 
-    link.href=url;
+"az",
 
-    link.download=
-    "tracker-mg-v06.csv";
+"energy",
 
+"distance_step",
 
-    document.body.appendChild(
-        link
-    );
+"total_distance",
+
+"canvas_x",
+
+"canvas_y",
+
+"event",
+
+"anchor_id",
+
+"anchor_error_m",
+
+"event_duration"
+
+];
 
 
-    link.click();
+
+let csv=
+headers.join(
+","
+)+
+"\n";
 
 
-    document.body.removeChild(
-        link
-    );
+
+rows.forEach(
+function(row){
+
+csv+=
+headers.map(
+function(key){
+
+return(
+row[key]!==undefined?
+row[key]:
+""
+);
+
+}
+)
+.join(
+","
+)+
+"\n";
+
+}
+);
 
 
-    URL.revokeObjectURL(
-        url
-    );
-});
+
+const blob=
+new Blob(
+[csv],
+{
+type:
+"text/csv;charset=utf-8;"
+}
+);
+
+
+
+const url=
+URL.createObjectURL(
+blob
+);
+
+
+
+const link=
+document.createElement(
+"a"
+);
+
+
+
+link.href=
+url;
+
+
+link.download=
+"tracker-mg-v07.csv";
+
+
+
+document.body.appendChild(
+link
+);
+
+
+link.click();
+
+
+document.body.removeChild(
+link
+);
+
+
+URL.revokeObjectURL(
+url
+);
+
+}
+);
+
 
 </script>
 
