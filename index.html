@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V1.4</title>
+<title>Tracker MG V1.5</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -18,8 +18,8 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V1.4</h1>
-<div class="subtitle">ONE TAP · dirección estabilizada · layout Gran Unión · pantalla ampliada · paradas · zonas</div>
+<h1>🛒 Tracker MG V1.5</h1>
+<div class="subtitle">ONE TAP · giro rápido mejorado · giros compuestos · layout Gran Unión · paradas · zonas</div>
 
 <div class="card">
   <div class="label">ESTADO</div>
@@ -82,7 +82,7 @@ const DISTANCE_FACTOR=IS_IOS?0.438:0.413;
 /* PLANO GRAN UNIÓN — configuración fija del local.
    Se reutiliza la escala obtenida en nuestras calibraciones previas;
    no requiere marcar A/B en cada recorrido. */
-const STORE_IMAGE='layout-gran-union.png?v=14';
+const STORE_IMAGE='layout-gran-union.png?v=15';
 const STORE_PX_PER_METER=67.0;
 /* Punto habitual de toma/entrada de carritos en el PNG original. */
 const STORE_START_X=2460;
@@ -98,22 +98,28 @@ const STOP_CONFIRM_RADIUS_METERS=0.75;
 const STOP_ZONE_RADIUS_METERS=2.0;
 const ZONE_RADIUS_METERS=3.0;
 
-/* Dirección: parámetros conservadores para distinguir giro real de drift */
-const HEADING_SMOOTH=0.32;              // más rápido que V1.0, todavía filtrado
+/* Dirección V1.5: giro rápido + maniobras compuestas.
+   - En recta seguimos usando heading filtrado/bloqueado.
+   - Durante TURNING usamos rawHeading, pero con limitador anti-picos.
+   - Una pausa corta entre dos giros no cierra la maniobra: estado COMPOUND. */
+const HEADING_SMOOTH=0.32;
 const RATE_SMOOTH=0.25;
-const TURN_START_RATE_DPS=10;            // giro real normalmente supera esto
+const TURN_START_RATE_DPS=10;
 const TURN_START_DELTA_DEG=10;
-const TURN_CONFIRM_MS=180;               // evita reaccionar a un salto aislado
+const TURN_CONFIRM_MS=160;
 const TURN_END_RATE_DPS=4.5;
-const TURN_END_MS=320;
-const STRAIGHT_DRIFT_ALLOW_DEG=8;        // variaciones pequeñas se ignoran en recta
+const TURN_END_MS=260;
+const TURN_BRIDGE_MS=1800;               // recta breve entre giros = misma maniobra
+const STRAIGHT_DRIFT_ALLOW_DEG=8;
+const RAW_TURN_MAX_STEP_DEG=12;          // limita saltos aislados del compass
 const MAX_REASONABLE_RATE_DPS=180;
 
 let sensorsInitialized=false, recording=false;
 let headingSource=null, rawHeading=null, filteredHeading=null;
 let lockedHeading=null, navHeading=null, routeStartNavHeading=null;
 let prevFilteredHeading=null, prevHeadingTime=null, headingRate=0, headingRateFiltered=0;
-let turning=false, turnCandidateSince=null, turnStableSince=null;
+let turning=false, compoundTurn=false, turnCandidateSince=null, turnStableSince=null, turnBridgeUntil=null;
+let turnRawHeading=null;
 let lastMotionTime=null, filteredEnergy=0, routeStartTime=null;
 let totalDistance=0,x=0,y=0,route=[],stops=[],zones=[];
 let stopCandidate=null,activeStop=null,stoppedSeconds=0;
@@ -200,37 +206,88 @@ function orientationHandler(e){
 }
 
 function updateNavigationHeading(now){
-  if(lockedHeading===null){lockedHeading=filteredHeading;navHeading=filteredHeading;return;}
+  if(lockedHeading===null){
+    lockedHeading=filteredHeading;
+    navHeading=filteredHeading;
+    turnRawHeading=rawHeading;
+    return;
+  }
+
   const deltaFromLock=shortestAngle(lockedHeading,filteredHeading);
   const absRate=Math.abs(headingRateFiltered);
+  const looksLikeTurn=Math.abs(deltaFromLock)>=TURN_START_DELTA_DEG&&absRate>=TURN_START_RATE_DPS;
 
+  /*
+    1) RECTA NORMAL
+    Mantenemos heading bloqueado para no acumular drift magnético.
+    Si estamos dentro de la ventana de una maniobra compuesta, una nueva
+    TURNING continúa la misma maniobra en vez de empezar desde cero.
+  */
   if(!turning){
-    /* En recta NO perseguimos lentamente al magnetómetro. */
     navHeading=lockedHeading;
-    const looksLikeTurn=Math.abs(deltaFromLock)>=TURN_START_DELTA_DEG&&absRate>=TURN_START_RATE_DPS;
+
     if(looksLikeTurn){
       if(turnCandidateSince===null)turnCandidateSince=now;
-      if(now-turnCandidateSince>=TURN_CONFIRM_MS){turning=true;turnCandidateSince=null;turnStableSince=null;navHeading=filteredHeading;}
+      if(now-turnCandidateSince>=TURN_CONFIRM_MS){
+        turning=true;
+        compoundTurn=(turnBridgeUntil!==null&&now<=turnBridgeUntil);
+        turnCandidateSince=null;
+        turnStableSince=null;
+        turnBridgeUntil=null;
+        turnRawHeading=rawHeading;
+        navHeading=rawHeading;
+      }
     }else{
       turnCandidateSince=null;
-      /* Sólo dejamos microajuste si la desviación es realmente mínima. */
-      if(Math.abs(deltaFromLock)<=STRAIGHT_DRIFT_ALLOW_DEG){
+
+      /* Si terminó un giro hace poco, mantenemos el heading ya alcanzado
+         sin hacer microajustes hasta saber si viene otro giro. */
+      if(turnBridgeUntil!==null){
+        if(now>turnBridgeUntil){
+          turnBridgeUntil=null;
+          compoundTurn=false;
+        }
+      }else if(Math.abs(deltaFromLock)<=STRAIGHT_DRIFT_ALLOW_DEG){
         lockedHeading=normalizeDegrees(lockedHeading+deltaFromLock*0.01);
         navHeading=lockedHeading;
       }
     }
   }else{
-    /* Durante el giro sí seguimos al sensor. */
-    navHeading=filteredHeading;
+    /*
+      2) DURANTE TURNING
+      Usamos rawHeading para eliminar el doble lag de filteredHeading.
+      Para no aceptar un salto magnético aislado, limitamos cuánto puede
+      cambiar el heading usado en una sola muestra.
+    */
+    if(turnRawHeading===null)turnRawHeading=rawHeading;
+    const rawDelta=shortestAngle(turnRawHeading,rawHeading);
+    const limitedDelta=Math.max(-RAW_TURN_MAX_STEP_DEG,Math.min(RAW_TURN_MAX_STEP_DEG,rawDelta));
+    turnRawHeading=normalizeDegrees(turnRawHeading+limitedDelta);
+    navHeading=turnRawHeading;
+
     if(absRate<=TURN_END_RATE_DPS){
       if(turnStableSince===null)turnStableSince=now;
       if(now-turnStableSince>=TURN_END_MS){
-        turning=false;lockedHeading=filteredHeading;navHeading=lockedHeading;turnStableSince=null;
+        turning=false;
+        /* El final del giro queda bloqueado en el heading rápido real,
+           no en el filtrado atrasado. */
+        lockedHeading=navHeading;
+        navHeading=lockedHeading;
+        turnStableSince=null;
+        turnBridgeUntil=now+TURN_BRIDGE_MS;
       }
-    }else turnStableSince=null;
+    }else{
+      turnStableSince=null;
+    }
   }
-  turnStateEl.textContent=turning?'GIRANDO':'RECTO';
-  if(routeStartNavHeading!==null)turnEl.textContent=shortestAngle(routeStartNavHeading,navHeading).toFixed(1);
+
+  if(turning) turnStateEl.textContent=compoundTurn?'GIRO COMPUESTO':'GIRANDO';
+  else if(turnBridgeUntil!==null&&now<=turnBridgeUntil) turnStateEl.textContent='MANIOBRA';
+  else turnStateEl.textContent='RECTO';
+
+  if(routeStartNavHeading!==null){
+    turnEl.textContent=shortestAngle(routeStartNavHeading,navHeading).toFixed(1);
+  }
 }
 
 function motionHandler(e){
@@ -257,7 +314,7 @@ function motionHandler(e){
 }
 
 function makeRow(time,step=0,energy=0,ax='',ay='',az=''){
-  return {time,x,y,distance:totalDistance,step,energy,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,turn_state:turning?'TURNING':'STRAIGHT',source:headingSource??'',ax,ay,az};
+  return {time,x,y,distance:totalDistance,step,energy,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT'),source:headingSource??'',ax,ay,az};
 }
 
 /* PARADAS */
@@ -341,7 +398,7 @@ function draw(){
   if(!storePlanLoaded){ctx.fillStyle='#666';ctx.font='18px sans-serif';ctx.fillText('Cargando layout-gran-union.png…',30,50);}
 }
 
-function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;turnCandidateSince=null;turnStableSince=null;timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;turnRawHeading=null;timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
 
 /* CSV */
 downloadCSV.addEventListener('click',()=>{
@@ -350,7 +407,7 @@ downloadCSV.addEventListener('click',()=>{
   let csv=headers.join(',')+'\n';for(const r of route){csv+=headers.map(k=>{const map={x_m:r.x,y_m:r.y,distance_step:r.step,total_distance:r.distance};const v=k in map?map[k]:r[k];return typeof v==='number'?v.toFixed(5):(v??'');}).join(',')+'\n';}
   csv+='\nSTOP_NUMBER,ZONE,START_TIME,DURATION,X,Y,DISTANCE\n';for(const s of stops)csv+=[s.number,s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3)].join(',')+'\n';
   csv+='\nZONE,VISITS,DWELL_SECONDS,X,Y\n';for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4)].join(',')+'\n';
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tracker-mg-v14.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tracker-mg-v15.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 
 function normalizeDegrees(d){return((d%360)+360)%360;}
