@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V1.9</title>
+<title>Tracker MG V2.0.1</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -19,8 +19,8 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V1.9</h1>
-<div class="subtitle">ONE TAP · tracking V1.8 congelado · ajuste técnico de layout · doble CSV RAW/AJUSTADO</div>
+<h1>🛒 Tracker MG V2.0.1</h1>
+<div class="subtitle">BASELINE FINAL · Gran Unión calibrado · un solo CSV completo</div>
 
 <div class="card">
   <div class="label">ESTADO</div>
@@ -53,24 +53,24 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 
 <div id="layoutPanel" class="card layoutPanel">
   <h2>Ajuste técnico del plano</h2>
-  <div class="note">Se habilita al finalizar. Estos controles <strong>NO cambian el tracking ni el CSV RAW</strong>; sólo cambian cómo el recorrido se proyecta sobre el layout. Ajustá mirando la gráfica y luego guardá Gran Unión.</div>
+  <div class="note">Se habilita al finalizar. Estos controles <strong>NO cambian el tracking</strong>; sólo cambian cómo el recorrido se proyecta sobre el layout. El único CSV guarda tanto el XY original como la proyección final sobre el plano.</div>
 
   <div class="adjustRow">
     <div><strong>Escala</strong><br><span class="note">px por metro</span></div>
     <button id="scaleMinus" class="miniBtn">−</button>
-    <div id="scaleValue" class="adjustValue">67.0</div>
+    <div id="scaleValue" class="adjustValue">54.5</div>
     <button id="scalePlus" class="miniBtn">+</button>
   </div>
   <div class="adjustRow">
     <div><strong>Origen X</strong><br><span class="note">izquierda / derecha</span></div>
     <button id="originXMinus" class="miniBtn">−</button>
-    <div id="originXValue" class="adjustValue">2460</div>
+    <div id="originXValue" class="adjustValue">2540</div>
     <button id="originXPlus" class="miniBtn">+</button>
   </div>
   <div class="adjustRow">
     <div><strong>Origen Y</strong><br><span class="note">arriba / abajo</span></div>
     <button id="originYMinus" class="miniBtn">−</button>
-    <div id="originYValue" class="adjustValue">760</div>
+    <div id="originYValue" class="adjustValue">820</div>
     <button id="originYPlus" class="miniBtn">+</button>
   </div>
   <div class="adjustRow">
@@ -82,11 +82,10 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 
   <div id="layoutSummary" class="layoutSummary"></div>
   <button id="saveLayoutButton" class="secondary saveBtn">GUARDAR AJUSTE GRAN UNIÓN</button>
-  <button id="restoreLayoutButton" class="secondary restoreBtn">RESTABLECER 67 / 2460 / 760 / 0°</button>
+  <button id="restoreLayoutButton" class="secondary restoreBtn">RESTABLECER 54.5 / 2540 / 820 / 0°</button>
 </div>
 
-<button id="downloadCSV" class="secondary raw" disabled>DESCARGAR CSV RAW</button>
-<button id="downloadAdjustedCSV" class="secondary adjusted" disabled>DESCARGAR CSV AJUSTADO</button>
+<button id="downloadCSV" class="secondary raw" disabled>DESCARGAR CSV</button>
 <button id="resetButton" class="secondary">BORRAR RECORRIDO</button>
 
 <div class="card">
@@ -119,10 +118,10 @@ const DISTANCE_FACTOR=IS_IOS?0.438:0.413; // iPhone fijado en 0.438
    Se reutiliza la escala obtenida en nuestras calibraciones previas;
    no requiere marcar A/B en cada recorrido. */
 const STORE_IMAGE='layout-gran-union.png?v=19';
-/* V1.9: configuración visual del layout. El tracking local (x,y) NO cambia.
+/* V2.0: baseline final de Gran Unión. El tracking local (x,y) NO cambia.
    Sólo esta transformación se ajusta después de terminar un recorrido. */
-const DEFAULT_LAYOUT={scale:67.0,originX:2460,originY:760,rotationDeg:0};
-const LAYOUT_STORAGE_KEY='trackerMG_granUnion_layout_v19';
+const DEFAULT_LAYOUT={scale:54.5,originX:2540,originY:820,rotationDeg:0};
+const LAYOUT_STORAGE_KEY='trackerMG_granUnion_layout_v20';
 let layoutConfig={...DEFAULT_LAYOUT};
 try{
   const saved=JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY)||'null');
@@ -185,7 +184,7 @@ const STRAIGHT_DRIFT_ALLOW_DEG=8;
 const RAW_TURN_MAX_STEP_DEG=12;          // limita saltos aislados del compass
 const MAX_REASONABLE_RATE_DPS=180;
 
-/* V1.8 — GIRO LENTO REACTIVO (tracking congelado en V1.9).
+/* V1.8/V1.9 — GIRO LENTO REACTIVO (tracking congelado en V2.0).
    La V1.7 podía permanecer demasiado tiempo bloqueada cuando el cambio
    de rumbo era real pero gradual. Ahora la discrepancia tiene 3 niveles:
    >12° sostenidos 0.6 s: GIRO LENTO; >20°: entrada rápida; >30°: inmediata. */
@@ -239,12 +238,12 @@ const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton')
 const timeEl=$('time'),distanceEl=$('distance'),stopCountEl=$('stopCount'),stoppedTimeEl=$('stoppedTime');
 const headingEl=$('heading'),turnEl=$('turn'),sourceEl=$('source'),frequencyEl=$('frequency'),turnStateEl=$('turnState'),headingRateEl=$('headingRate');
 const activeStopEl=$('activeStop'),stopListEl=$('stopList'),zoneListEl=$('zoneList'),downloadCSV=$('downloadCSV');
-const downloadAdjustedCSV=$('downloadAdjustedCSV'),layoutPanel=$('layoutPanel');
+const layoutPanel=$('layoutPanel');
 const scaleValue=$('scaleValue'),originXValue=$('originXValue'),originYValue=$('originYValue'),rotationValue=$('rotationValue'),layoutSummary=$('layoutSummary');
 const canvas=$('canvas'),ctx=canvas.getContext('2d');
 
 mainButton.addEventListener('click',async()=>{if(recording)finishTracking();else await startTracking();});
-$('resetButton').addEventListener('click',()=>{resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=true;downloadAdjustedCSV.disabled=true;layoutPanel.classList.remove('show');});
+$('resetButton').addEventListener('click',()=>{resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=true;layoutPanel.classList.remove('show');});
 
 async function startTracking(){
   try{
@@ -262,7 +261,7 @@ async function startTracking(){
     route.push(makeRow(0,0));
     statusEl.textContent='● TRACKING ACTIVO';statusEl.className='status ok';
     sensorInfo.textContent='Dirección: '+headingSource+'-LOCK · perfil '+(IS_IOS?'iPhone':'Android')+' · factor '+DISTANCE_FACTOR.toFixed(3);
-    mainButton.textContent='■ FINALIZAR TRACKING';mainButton.classList.add('stop');downloadCSV.disabled=true;downloadAdjustedCSV.disabled=true;layoutPanel.classList.remove('show');draw();
+    mainButton.textContent='■ FINALIZAR TRACKING';mainButton.classList.add('stop');downloadCSV.disabled=true;layoutPanel.classList.remove('show');draw();
   }catch(e){statusEl.textContent='● '+e.message;statusEl.className='status error';}
 }
 
@@ -270,7 +269,7 @@ function finishTracking(){
   if(activeStop)finishActiveStop();
   recording=false;
   statusEl.textContent='● FINALIZADO — '+totalDistance.toFixed(1)+' m';statusEl.className='status waiting';
-  mainButton.textContent='▶ INICIAR NUEVO TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=route.length===0;downloadAdjustedCSV.disabled=route.length===0;layoutPanel.classList.toggle('show',route.length>0);updateLayoutControls();draw();
+  mainButton.textContent='▶ INICIAR NUEVO TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=route.length===0;layoutPanel.classList.toggle('show',route.length>0);updateLayoutControls();draw();
 }
 
 async function initializeSensors(){
@@ -673,7 +672,7 @@ function draw(){
 function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
 
 /* =========================================================
-   V1.9 — AJUSTE TÉCNICO DEL LAYOUT (POST-RECORRIDO)
+   V2.0 — AJUSTE TÉCNICO DEL LAYOUT (POST-RECORRIDO)
    - No modifica route[x,y], distancia ni headings.
    - Cambia únicamente la proyección local -> PNG.
    - Se guarda en localStorage y se reutiliza en el próximo recorrido.
@@ -716,17 +715,8 @@ $('restoreLayoutButton').addEventListener('click',()=>{
 });
 updateLayoutControls();
 
-/* CSV */
+/* CSV — único archivo completo: tracking + proyección al layout + zonas */
 downloadCSV.addEventListener('click',()=>{
-  if(!route.length)return;
-  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','x_m','y_m','distance_step','total_distance','energy','energy_fast','ax','ay','az'];
-  let csv=headers.join(',')+'\n';for(const r of route){csv+=headers.map(k=>{const map={x_m:r.x,y_m:r.y,distance_step:r.step,total_distance:r.distance};const v=k in map?map[k]:r[k];return typeof v==='number'?v.toFixed(5):(v??'');}).join(',')+'\n';}
-  csv+='\nSTOP_NUMBER,STORE_ZONE,AUTO_CLUSTER,START_TIME,DURATION,X,Y,DISTANCE\n';for(const s of stops)csv+=[s.number,s.storeZone||'ZONA SIN DEFINIR',s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3)].join(',')+'\n';
-  csv+='\nZONE,VISITS,DWELL_SECONDS,X,Y\n';for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4)].join(',')+'\n';
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tracker-mg-v19-raw.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-});
-
-downloadAdjustedCSV.addEventListener('click',()=>{
   if(!route.length)return;
   const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','x_m','y_m','distance_step','total_distance','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
   let csv=headers.join(',')+'\n';
@@ -738,9 +728,11 @@ downloadAdjustedCSV.addEventListener('click',()=>{
   }
   csv+='\nSTOP_NUMBER,STORE_ZONE,AUTO_CLUSTER,START_TIME,DURATION,X_M,Y_M,DISTANCE,PLAN_X_PX,PLAN_Y_PX\n';
   for(const s of stops){const p=localToPlanCoords(s.x,s.y,layoutConfig);csv+=[s.number,getStoreZoneName(s.x,s.y,layoutConfig),s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3),p.x.toFixed(2),p.y.toFixed(2)].join(',')+'\n';}
+  csv+='\nZONE,VISITS,DWELL_SECONDS,X_M,Y_M,STORE_ZONE\n';
+  for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4),getStoreZoneName(z.x,z.y,layoutConfig)].join(',')+'\n';
   csv+='\nLAYOUT_SCALE_PX_PER_M,LAYOUT_ORIGIN_X,LAYOUT_ORIGIN_Y,LAYOUT_ROTATION_DEG\n'+[layoutConfig.scale.toFixed(3),layoutConfig.originX.toFixed(1),layoutConfig.originY.toFixed(1),layoutConfig.rotationDeg.toFixed(3)].join(',')+'\n';
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='tracker-mg-v19-ajustado.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  a.href=url;a.download='tracker-mg-v201.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 
 function normalizeDegrees(d){return((d%360)+360)%360;}
