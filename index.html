@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V2.0.1</title>
+<title>Tracker MG V2.0.2</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -19,8 +19,8 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V2.0.1</h1>
-<div class="subtitle">BASELINE FINAL · Gran Unión calibrado · un solo CSV completo</div>
+<h1>🛒 Tracker MG V2.0.2</h1>
+<div class="subtitle">DISTANCIA RECALIBRADA · anti-vibración menos agresiva · diagnóstico bruto/filtrado</div>
 
 <div class="card">
   <div class="label">ESTADO</div>
@@ -35,6 +35,13 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
   <div><div class="label">PARADAS</div><div id="stopCount" class="big">0</div></div>
   <div><div class="label">TIEMPO PARADO</div><div class="big"><span id="stoppedTime">0</span> s</div></div>
 </div></div>
+
+<div class="card"><div class="grid">
+  <div><div class="label">DISTANCIA BRUTA SENSOR</div><div class="value"><span id="rawDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">DISTANCIA FILTRADA BASE</div><div class="value"><span id="filteredDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">DISTANCIA USADA</div><div class="value"><span id="usedDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">RECUPERACIÓN FILTRO</div><div class="value"><span id="distanceGainDiag">1.22×</span></div></div>
+</div><div class="note">Diagnóstico: la distancia bruta sirve sólo para comparar cuánto elimina el filtro. El recorrido usa la distancia filtrada corregida, no la bruta.</div></div>
 
 <div class="card"><div class="grid">
   <div><div class="label">DIRECCIÓN SENSOR</div><div class="value"><span id="heading">---</span>°</div></div>
@@ -104,7 +111,7 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 
 <script>
 /* =========================================================
-   V1.3 — PRINCIPIO
+   V2.0.2 — PRINCIPIO
    - NO usa gyro para dirección.
    - iPhone: webkitCompassHeading.
    - Android: alpha.
@@ -121,7 +128,7 @@ const STORE_IMAGE='layout-gran-union.png?v=19';
 /* V2.0: baseline final de Gran Unión. El tracking local (x,y) NO cambia.
    Sólo esta transformación se ajusta después de terminar un recorrido. */
 const DEFAULT_LAYOUT={scale:54.5,originX:2540,originY:820,rotationDeg:0};
-const LAYOUT_STORAGE_KEY='trackerMG_granUnion_layout_v20';
+const LAYOUT_STORAGE_KEY='trackerMG_granUnion_layout_v202';
 let layoutConfig={...DEFAULT_LAYOUT};
 try{
   const saved=JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY)||'null');
@@ -208,8 +215,11 @@ const SLOW_TURN_END_MS=400;
      primero pasa por una mediana de ventana corta (mata picos aislados
      de 1-2 muestras sin tocar el ritmo real de empuje), y después por
      un pasa-bajos bastante más lento que la energía rápida. */
-const MEDIAN_WINDOW=5;
-const DISTANCE_ENERGY_SMOOTH=0.12;
+const MEDIAN_WINDOW=3;                 // V2.0.2: menos agresivo; conserva más movimiento real
+const DISTANCE_ENERGY_SMOOTH=0.18;     // responde antes al empuje sostenido
+const DISTANCE_MOVEMENT_THRESHOLD=0.035; // separado del umbral de paradas (0.055)
+const RAW_DISTANCE_THRESHOLD=0.055;
+const DISTANCE_RECOVERY_GAIN=1.22;     // compensa atenuación introducida por el filtro anti-vibración
 
 /* V1.8 — parada inteligente.
    Al detectar una parada, XY y distancia quedan congelados. Para reanudar
@@ -229,7 +239,7 @@ let slowTurning=false, slowTurnCandidateSince=null, slowTurnStableSince=null;
 let turnRawHeading=null;
 let lastMotionTime=null, filteredEnergy=0, routeStartTime=null;
 let magnitudeBuffer=[], distanceEnergy=0;
-let totalDistance=0,x=0,y=0,route=[],stops=[],zones=[];
+let totalDistance=0,rawDistanceDiagTotal=0,filteredDistanceBaseTotal=0,x=0,y=0,route=[],stops=[],zones=[];
 let stopCandidate=null,activeStop=null,stoppedSeconds=0,resumeCandidate=null;
 let sampleCounter=0,frequencyStart=performance.now(),lastDraw=0;
 
@@ -237,6 +247,7 @@ const $=id=>document.getElementById(id);
 const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton');
 const timeEl=$('time'),distanceEl=$('distance'),stopCountEl=$('stopCount'),stoppedTimeEl=$('stoppedTime');
 const headingEl=$('heading'),turnEl=$('turn'),sourceEl=$('source'),frequencyEl=$('frequency'),turnStateEl=$('turnState'),headingRateEl=$('headingRate');
+const rawDistanceDiagEl=$('rawDistanceDiag'),filteredDistanceDiagEl=$('filteredDistanceDiag'),usedDistanceDiagEl=$('usedDistanceDiag'),distanceGainDiagEl=$('distanceGainDiag');
 const activeStopEl=$('activeStop'),stopListEl=$('stopList'),zoneListEl=$('zoneList'),downloadCSV=$('downloadCSV');
 const layoutPanel=$('layoutPanel');
 const scaleValue=$('scaleValue'),originXValue=$('originXValue'),originYValue=$('originYValue'),rotationValue=$('rotationValue'),layoutSummary=$('layoutSummary');
@@ -472,16 +483,31 @@ function motionHandler(e){
   if(magnitudeBuffer.length>MEDIAN_WINDOW)magnitudeBuffer.shift();
   const despiked=median(magnitudeBuffer);
   distanceEnergy=distanceEnergy*(1-DISTANCE_ENERGY_SMOOTH)+despiked*DISTANCE_ENERGY_SMOOTH;
-  const distanceEnergyNet=Math.max(0,distanceEnergy-MOVEMENT_THRESHOLD);
+  const distanceEnergyNet=Math.max(0,distanceEnergy-DISTANCE_MOVEMENT_THRESHOLD);
+  const rawDistanceEnergyNet=Math.max(0,filteredEnergy-RAW_DISTANCE_THRESHOLD);
 
   if(!recording||navHeading===null||routeStartNavHeading===null)return;
 
-  let proposedStep=distanceEnergyNet*dt*DISTANCE_FACTOR;if(proposedStep>0.20)proposedStep=0.20;
+  // Tres lecturas distintas:
+  // 1) bruta: referencia diagnóstica (más sensible a vibración)
+  // 2) filtrada base: señal anti-vibración antes de recuperar atenuación
+  // 3) usada: filtrada base * DISTANCE_RECOVERY_GAIN; ésta mueve el XY
+  let rawDiagnosticStep=rawDistanceEnergyNet*dt*DISTANCE_FACTOR;if(rawDiagnosticStep>0.20)rawDiagnosticStep=0.20;
+  let filteredBaseStep=distanceEnergyNet*dt*DISTANCE_FACTOR;if(filteredBaseStep>0.20)filteredBaseStep=0.20;
+  let proposedStep=filteredBaseStep*DISTANCE_RECOVERY_GAIN;if(proposedStep>0.24)proposedStep=0.24;
+
+  rawDistanceDiagTotal+=rawDiagnosticStep;
+  filteredDistanceBaseTotal+=filteredBaseStep;
+
   const elapsed=(now-routeStartTime)/1000;
   const movementResult=processMovementAndStops(energy,distanceEnergyNet,proposedStep,elapsed,now);
   const appliedStep=movementResult.appliedStep;
   timeEl.textContent=elapsed.toFixed(0);distanceEl.textContent=totalDistance.toFixed(1);
-  route.push(makeRow(elapsed,appliedStep,distanceEnergyNet,ax,ay,az,energy));
+  rawDistanceDiagEl.textContent=rawDistanceDiagTotal.toFixed(1);
+  filteredDistanceDiagEl.textContent=filteredDistanceBaseTotal.toFixed(1);
+  usedDistanceDiagEl.textContent=totalDistance.toFixed(1);
+  distanceGainDiagEl.textContent=DISTANCE_RECOVERY_GAIN.toFixed(2)+'×';
+  route.push(makeRow(elapsed,appliedStep,distanceEnergyNet,ax,ay,az,energy,rawDiagnosticStep,filteredBaseStep));
   if(now-lastDraw>100){draw();lastDraw=now;}
 }
 
@@ -491,8 +517,8 @@ function median(arr){
   return s.length%2!==0?s[mid]:(s[mid-1]+s[mid])/2;
 }
 
-function makeRow(time,step=0,energy=0,ax='',ay='',az='',energyFast=0){
-  return {time,x,y,distance:totalDistance,step,energy,energy_fast:energyFast,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,heading_disagreement:(lockedHeading!==null&&filteredHeading!==null?shortestAngle(lockedHeading,filteredHeading):0),turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):(slowTurning?'SLOW_TURN':((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT')),stop_state:activeStop?(resumeCandidate?'RESUME_CHECK':'STOP_FROZEN'):(stopCandidate?'STOP_CANDIDATE':'MOVING'),source:headingSource??'',ax,ay,az};
+function makeRow(time,step=0,energy=0,ax='',ay='',az='',energyFast=0,rawDiagnosticStep=0,filteredBaseStep=0){
+  return {time,x,y,distance:totalDistance,step,energy,energy_fast:energyFast,raw_distance_step:rawDiagnosticStep,filtered_base_step:filteredBaseStep,raw_distance_total:rawDistanceDiagTotal,filtered_base_total:filteredDistanceBaseTotal,distance_recovery_gain:DISTANCE_RECOVERY_GAIN,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,heading_disagreement:(lockedHeading!==null&&filteredHeading!==null?shortestAngle(lockedHeading,filteredHeading):0),turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):(slowTurning?'SLOW_TURN':((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT')),stop_state:activeStop?(resumeCandidate?'RESUME_CHECK':'STOP_FROZEN'):(stopCandidate?'STOP_CANDIDATE':'MOVING'),source:headingSource??'',ax,ay,az};
 }
 
 /* =========================================================
@@ -669,7 +695,7 @@ function draw(){
   if(!storePlanLoaded){ctx.fillStyle='#666';ctx.font='18px sans-serif';ctx.fillText('Cargando layout-gran-union.png…',30,50);}
 }
 
-function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';distanceGainDiagEl.textContent=DISTANCE_RECOVERY_GAIN.toFixed(2)+'×';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
 
 /* =========================================================
    V2.0 — AJUSTE TÉCNICO DEL LAYOUT (POST-RECORRIDO)
@@ -718,7 +744,7 @@ updateLayoutControls();
 /* CSV — único archivo completo: tracking + proyección al layout + zonas */
 downloadCSV.addEventListener('click',()=>{
   if(!route.length)return;
-  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','x_m','y_m','distance_step','total_distance','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
+  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','x_m','y_m','distance_step','total_distance','raw_distance_step','filtered_base_step','raw_distance_total','filtered_base_total','distance_recovery_gain','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
   let csv=headers.join(',')+'\n';
   for(const r of route){
     const p=localToPlanCoords(r.x,r.y,layoutConfig);
@@ -732,7 +758,7 @@ downloadCSV.addEventListener('click',()=>{
   for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4),getStoreZoneName(z.x,z.y,layoutConfig)].join(',')+'\n';
   csv+='\nLAYOUT_SCALE_PX_PER_M,LAYOUT_ORIGIN_X,LAYOUT_ORIGIN_Y,LAYOUT_ROTATION_DEG\n'+[layoutConfig.scale.toFixed(3),layoutConfig.originX.toFixed(1),layoutConfig.originY.toFixed(1),layoutConfig.rotationDeg.toFixed(3)].join(',')+'\n';
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='tracker-mg-v201.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  a.href=url;a.download='tracker-mg-v202.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 
 function normalizeDegrees(d){return((d%360)+360)%360;}
