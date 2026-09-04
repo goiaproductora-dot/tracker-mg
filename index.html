@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V2.0.3</title>
+<title>Tracker MG V2.0.4</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -19,7 +19,7 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V2.0.3</h1>
+<h1>🛒 Tracker MG V2.0.4</h1>
 <div class="subtitle">DISTANCIA ADAPTATIVA · anti-vibración + compensación por maniobra · baseline Gran Unión</div>
 
 <div class="card">
@@ -192,6 +192,18 @@ const STRAIGHT_DRIFT_ALLOW_DEG=8;
 const RAW_TURN_MAX_STEP_DEG=12;          // limita saltos aislados del compass
 const MAX_REASONABLE_RATE_DPS=180;
 
+/* V2.0.4 — SNAP DE GIROS REALES DE 90°.
+   El piso rugoso puede contaminar el compass justo durante una maniobra.
+   Si un giro terminado quedó cerca de 90°/180°, cerramos el ángulo al valor
+   geométrico esperado. NO fuerza diagonales ni curvas que estén lejos. */
+const ORTHO_SNAP_TOLERANCE_DEG=22;
+const ORTHO_SNAP_MIN_TURN_DEG=60;
+
+/* UI desacoplada de los sensores: integrar a ~60 Hz, pintar sólo 6-8 Hz.
+   Evita parpadeos/reflow y reduce la posibilidad de que Safari pierda eventos. */
+const UI_REFRESH_MS=160;
+const CANVAS_REFRESH_MS=140;
+
 /* V1.8/V1.9 — GIRO LENTO REACTIVO (tracking congelado en V2.0).
    La V1.7 podía permanecer demasiado tiempo bloqueada cuando el cambio
    de rumbo era real pero gradual. Ahora la discrepancia tiene 3 niveles:
@@ -220,7 +232,7 @@ const MEDIAN_WINDOW=3;                 // V2.0.2: menos agresivo; conserva más 
 const DISTANCE_ENERGY_SMOOTH=0.18;     // responde antes al empuje sostenido
 const DISTANCE_MOVEMENT_THRESHOLD=0.035; // separado del umbral de paradas (0.055)
 const RAW_DISTANCE_THRESHOLD=0.055;
-/* V2.0.3 — distancia adaptativa.
+/* V2.0.4 — distancia adaptativa · giros 90° estabilizados · UI estable + cierre de giros ortogonales + UI estable.
    Ya no usamos un 1.22x global. En recta estable conservamos casi 1:1;
    con vibración fuerte reducimos la integración, y durante giros/manio-
    bras aplicamos una reducción adicional porque parte de la energía es
@@ -246,12 +258,12 @@ let lockedHeading=null, navHeading=null, routeStartNavHeading=null;
 let prevFilteredHeading=null, prevHeadingTime=null, headingRate=0, headingRateFiltered=0;
 let turning=false, compoundTurn=false, turnCandidateSince=null, turnStableSince=null, turnBridgeUntil=null;
 let slowTurning=false, slowTurnCandidateSince=null, slowTurnStableSince=null;
-let turnRawHeading=null;
+let turnRawHeading=null,turnEntryHeading=null;
 let lastMotionTime=null, filteredEnergy=0, routeStartTime=null;
 let magnitudeBuffer=[], distanceEnergy=0, adaptiveDistanceGain=1.0, currentDistanceMode="NORMAL";
 let totalDistance=0,rawDistanceDiagTotal=0,filteredDistanceBaseTotal=0,x=0,y=0,route=[],stops=[],zones=[];
 let stopCandidate=null,activeStop=null,stoppedSeconds=0,resumeCandidate=null;
-let sampleCounter=0,frequencyStart=performance.now(),lastDraw=0;
+let sampleCounter=0,frequencyStart=performance.now(),lastDraw=0,lastUiRefresh=0,currentFrequency=0;
 
 const $=id=>document.getElementById(id);
 const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton');
@@ -319,7 +331,6 @@ function orientationHandler(e){
   rawHeading=h;
   if(filteredHeading===null)filteredHeading=h;
   else filteredHeading=normalizeDegrees(filteredHeading+shortestAngle(filteredHeading,h)*HEADING_SMOOTH);
-  headingEl.textContent=filteredHeading.toFixed(1);sourceEl.textContent=headingSource+'-LOCK';
 
   const now=performance.now();
   if(prevFilteredHeading!==null&&prevHeadingTime!==null){
@@ -329,11 +340,28 @@ function orientationHandler(e){
       rate=Math.max(-MAX_REASONABLE_RATE_DPS,Math.min(MAX_REASONABLE_RATE_DPS,rate));
       headingRate=rate;
       headingRateFiltered=headingRateFiltered*(1-RATE_SMOOTH)+rate*RATE_SMOOTH;
-      headingRateEl.textContent=headingRateFiltered.toFixed(1);
     }
   }
   prevFilteredHeading=filteredHeading;prevHeadingTime=now;
   if(recording)updateNavigationHeading(now);
+}
+
+function snapCompletedTurn(entryHeading, candidateHeading){
+  if(entryHeading===null||candidateHeading===null)return candidateHeading;
+  const d=shortestAngle(entryHeading,candidateHeading);
+  const ad=Math.abs(d);
+  if(ad<ORTHO_SNAP_MIN_TURN_DEG)return candidateHeading;
+  const targets=[90,180];
+  let best=null,bestErr=Infinity;
+  for(const t of targets){
+    const err=Math.abs(ad-t);
+    if(err<bestErr){bestErr=err;best=t;}
+  }
+  if(best!==null && bestErr<=ORTHO_SNAP_TOLERANCE_DEG){
+    const signed=(d<0?-best:best);
+    return normalizeDegrees(entryHeading+signed);
+  }
+  return candidateHeading;
 }
 
 function updateNavigationHeading(now){
@@ -362,8 +390,9 @@ function updateNavigationHeading(now){
       if(turnStableSince===null)turnStableSince=now;
       if(now-turnStableSince>=TURN_END_MS){
         turning=false;
+        navHeading=snapCompletedTurn(turnEntryHeading,navHeading);
         lockedHeading=navHeading;
-        navHeading=lockedHeading;
+        turnEntryHeading=null;
         turnStableSince=null;
         turnBridgeUntil=now+TURN_BRIDGE_MS;
       }
@@ -388,7 +417,9 @@ function updateNavigationHeading(now){
         slowTurning=false;
         slowTurnStableSince=null;
         slowTurnCandidateSince=null;
+        navHeading=snapCompletedTurn(turnEntryHeading,navHeading);
         lockedHeading=navHeading;
+        turnEntryHeading=null;
         turnBridgeUntil=now+TURN_BRIDGE_MS;
       }
     }else slowTurnStableSince=null;
@@ -399,6 +430,7 @@ function updateNavigationHeading(now){
       slowTurnCandidateSince=null;
       slowTurnStableSince=null;
       turning=true;
+      turnEntryHeading=lockedHeading;
       compoundTurn=(turnBridgeUntil!==null&&now<=turnBridgeUntil);
       turnBridgeUntil=null;
       turnRawHeading=rawHeading;
@@ -415,6 +447,7 @@ function updateNavigationHeading(now){
       if(turnCandidateSince===null)turnCandidateSince=now;
       if(now-turnCandidateSince>=TURN_CONFIRM_MS){
         turning=true;
+        turnEntryHeading=lockedHeading;
         compoundTurn=(turnBridgeUntil!==null&&now<=turnBridgeUntil);
         turnCandidateSince=null;
         turnStableSince=null;
@@ -428,6 +461,7 @@ function updateNavigationHeading(now){
       /* V1.8: desbloqueo escalonado por discrepancia persistente. */
       if(disagreement>=SLOW_TURN_IMMEDIATE_DELTA_DEG){
         slowTurning=true;
+        turnEntryHeading=lockedHeading;
         slowTurnCandidateSince=null;
         slowTurnStableSince=null;
         navHeading=lockedHeading;
@@ -435,6 +469,7 @@ function updateNavigationHeading(now){
         if(slowTurnCandidateSince===null)slowTurnCandidateSince=now;
         if(now-slowTurnCandidateSince>=180){
           slowTurning=true;
+          turnEntryHeading=lockedHeading;
           slowTurnStableSince=null;
           navHeading=lockedHeading;
         }
@@ -442,6 +477,7 @@ function updateNavigationHeading(now){
         if(slowTurnCandidateSince===null)slowTurnCandidateSince=now;
         if(now-slowTurnCandidateSince>=SLOW_TURN_SOFT_CONFIRM_MS){
           slowTurning=true;
+          turnEntryHeading=lockedHeading;
           slowTurnStableSince=null;
           navHeading=lockedHeading;
         }
@@ -495,7 +531,7 @@ function getAdaptiveDistanceGain(energyFast){
 
 function motionHandler(e){
   const now=performance.now();sampleCounter++;
-  if(now-frequencyStart>=1000){frequencyEl.textContent=sampleCounter;sampleCounter=0;frequencyStart=now;}
+  if(now-frequencyStart>=1000){currentFrequency=sampleCounter;sampleCounter=0;frequencyStart=now;}
   if(lastMotionTime===null){lastMotionTime=now;return;}
   let dt=(now-lastMotionTime)/1000;lastMotionTime=now;if(dt>0.1)dt=0.1;
   const a=e.acceleration;if(!a)return;
@@ -536,14 +572,21 @@ function motionHandler(e){
   const elapsed=(now-routeStartTime)/1000;
   const movementResult=processMovementAndStops(energy,distanceEnergyNet,proposedStep,elapsed,now);
   const appliedStep=movementResult.appliedStep;
-  timeEl.textContent=elapsed.toFixed(0);distanceEl.textContent=totalDistance.toFixed(1);
-  rawDistanceDiagEl.textContent=rawDistanceDiagTotal.toFixed(1);
-  filteredDistanceDiagEl.textContent=filteredDistanceBaseTotal.toFixed(1);
-  usedDistanceDiagEl.textContent=totalDistance.toFixed(1);
-  distanceGainDiagEl.textContent=adaptiveDistanceGain.toFixed(2)+'×';
-  distanceModeDiagEl.textContent=currentDistanceMode;
   route.push(makeRow(elapsed,appliedStep,distanceEnergyNet,ax,ay,az,energy,rawDiagnosticStep,filteredBaseStep));
-  if(now-lastDraw>100){draw();lastDraw=now;}
+  if(now-lastUiRefresh>UI_REFRESH_MS){
+    timeEl.textContent=elapsed.toFixed(0);distanceEl.textContent=totalDistance.toFixed(1);
+    rawDistanceDiagEl.textContent=rawDistanceDiagTotal.toFixed(1);
+    filteredDistanceDiagEl.textContent=filteredDistanceBaseTotal.toFixed(1);
+    usedDistanceDiagEl.textContent=totalDistance.toFixed(1);
+    distanceGainDiagEl.textContent=adaptiveDistanceGain.toFixed(2)+'×';
+    distanceModeDiagEl.textContent=currentDistanceMode;
+    headingEl.textContent=(filteredHeading??0).toFixed(1);
+    sourceEl.textContent=(headingSource??'')+'-LOCK';
+    headingRateEl.textContent=headingRateFiltered.toFixed(1);
+    frequencyEl.textContent=currentFrequency||'---';
+    lastUiRefresh=now;
+  }
+  if(now-lastDraw>CANVAS_REFRESH_MS){draw();lastDraw=now;}
 }
 
 function median(arr){
@@ -730,7 +773,7 @@ function draw(){
   if(!storePlanLoaded){ctx.fillStyle='#666';ctx.font='18px sans-serif';ctx.fillText('Cargando layout-gran-union.png…',30,50);}
 }
 
-function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';adaptiveDistanceGain=1.0;currentDistanceMode='NORMAL';distanceGainDiagEl.textContent='1.00×';distanceModeDiagEl.textContent='NORMAL';turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;turnEntryHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';adaptiveDistanceGain=1.0;currentDistanceMode='NORMAL';distanceGainDiagEl.textContent='1.00×';distanceModeDiagEl.textContent='NORMAL';lastUiRefresh=0;lastDraw=0;turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
 
 /* =========================================================
    V2.0 — AJUSTE TÉCNICO DEL LAYOUT (POST-RECORRIDO)
