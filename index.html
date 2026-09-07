@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V2.0.4</title>
+<title>Tracker MG V2.0.5</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -19,8 +19,8 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V2.0.4</h1>
-<div class="subtitle">DISTANCIA ADAPTATIVA · anti-vibración + compensación por maniobra · baseline Gran Unión</div>
+<h1>🛒 Tracker MG V2.0.5</h1>
+<div class="subtitle">DISTANCIA ADAPTATIVA · penalización por maniobra casi retirada · anti-vibración · baseline Gran Unión</div>
 
 <div class="card">
   <div class="label">ESTADO</div>
@@ -232,11 +232,24 @@ const MEDIAN_WINDOW=3;                 // V2.0.2: menos agresivo; conserva más 
 const DISTANCE_ENERGY_SMOOTH=0.18;     // responde antes al empuje sostenido
 const DISTANCE_MOVEMENT_THRESHOLD=0.035; // separado del umbral de paradas (0.055)
 const RAW_DISTANCE_THRESHOLD=0.055;
-/* V2.0.4 — distancia adaptativa · giros 90° estabilizados · UI estable + cierre de giros ortogonales + UI estable.
-   Ya no usamos un 1.22x global. En recta estable conservamos casi 1:1;
-   con vibración fuerte reducimos la integración, y durante giros/manio-
-   bras aplicamos una reducción adicional porque parte de la energía es
-   rotación/rueda y no avance lineal. */
+/* V2.0.5 — se retira la penalización por maniobra.
+   V2.0.4 asumía que girar consume ~20-28% de la energía en rotación
+   pura (no avance) y descontaba distancia según el estado (GIRO,
+   MANIOBRA, GIRO COMPUESTO). Esa cifra nunca estuvo medida — era una
+   suposición, igual que la corrección que se evaluó de subirla a
+   0.90-0.95: mismo tipo de ajuste a ojo, solo que más chico.
+   En la práctica esa penalización fue la causa directa de que el
+   trazado quedara corto en curvas amplias (ej. bordear la cafetería):
+   dos pasadas de campo mostraron 5-7 m "perdidos" exactamente en los
+   tramos de GIRO/MANIOBRA/GIRO COMPUESTO.
+   Acá el factor de maniobra queda casi neutralizado (0.97-1.0) y el
+   único descuento real que queda activo es el de vibración, que sí
+   está atado a energía medida en vez de a una suposición sobre qué
+   fracción del movimiento fue "solo rotación".
+   Para calibrar DISTANCE_FACTOR con algo más firme que impresión
+   visual: medí con cinta un tramo real del local (ej. INICIO hasta
+   la esquina de bebidas) y comparalo contra total_distance en el CSV
+   en ese punto exacto. */
 const DISTANCE_BASE_GAIN=1.02;
 const VIBRATION_MEDIUM=2.4;
 const VIBRATION_HIGH=3.2;
@@ -517,13 +530,16 @@ function getAdaptiveDistanceGain(energyFast){
   else if(energyFast>=VIBRATION_HIGH){vibrationFactor=0.90;vibrationLabel='VIBRACIÓN';}
   else if(energyFast>=VIBRATION_MEDIUM){vibrationFactor=0.97;vibrationLabel='VIBRACIÓN MEDIA';}
 
-  // Factor por maniobra: parte de la energía corresponde a giro de ruedas / rotación.
+  // Factor por maniobra V2.0.5: casi neutralizado (ver comentario arriba).
+  // Se deja una fricción mínima porque durante un giro muy cerrado el
+  // paso real puede acortarse un poco, pero ya no se asume que 1/4 o
+  // 1/5 de la energía de un giro es "solo rotación".
   let maneuverFactor=1.0;
   let maneuverLabel='RECTA';
-  if(turning && compoundTurn){maneuverFactor=0.72;maneuverLabel='GIRO COMPUESTO';}
-  else if(turning){maneuverFactor=0.78;maneuverLabel='GIRO';}
-  else if(slowTurning){maneuverFactor=0.88;maneuverLabel='GIRO LENTO';}
-  else if(turnBridgeUntil!==null && performance.now()<=turnBridgeUntil){maneuverFactor=0.72;maneuverLabel='MANIOBRA';}
+  if(turning && compoundTurn){maneuverFactor=0.97;maneuverLabel='GIRO COMPUESTO';}
+  else if(turning){maneuverFactor=0.98;maneuverLabel='GIRO';}
+  else if(slowTurning){maneuverFactor=1.0;maneuverLabel='GIRO LENTO';}
+  else if(turnBridgeUntil!==null && performance.now()<=turnBridgeUntil){maneuverFactor=0.98;maneuverLabel='MANIOBRA';}
 
   const gain=DISTANCE_BASE_GAIN*vibrationFactor*maneuverFactor;
   return {gain,mode:(vibrationLabel==='NORMAL'?maneuverLabel:(maneuverLabel==='RECTA'?vibrationLabel:vibrationLabel+' + '+maneuverLabel))};
@@ -836,7 +852,7 @@ downloadCSV.addEventListener('click',()=>{
   for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4),getStoreZoneName(z.x,z.y,layoutConfig)].join(',')+'\n';
   csv+='\nLAYOUT_SCALE_PX_PER_M,LAYOUT_ORIGIN_X,LAYOUT_ORIGIN_Y,LAYOUT_ROTATION_DEG\n'+[layoutConfig.scale.toFixed(3),layoutConfig.originX.toFixed(1),layoutConfig.originY.toFixed(1),layoutConfig.rotationDeg.toFixed(3)].join(',')+'\n';
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='tracker-mg-v203.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  a.href=url;a.download='tracker-mg-v205.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 
 function normalizeDegrees(d){return((d%360)+360)%360;}
