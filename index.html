@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Tracker MG V2.0.7</title>
+<title>Tracker MG V2.0.8</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
 .container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
@@ -19,8 +19,8 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 </head>
 <body>
 <div class="container">
-<h1>🛒 Tracker MG V2.0.7</h1>
-<div class="subtitle">DISTANCIA ADAPTATIVA · veto por giroscopio · registro completo de giroscopio · baseline Gran Unión</div>
+<h1>🛒 Tracker MG V2.0.8</h1>
+<div class="subtitle">DISTANCIA ADAPTATIVA · freeze por disturbio sostenido · veto por giroscopio · baseline Gran Unión</div>
 
 <div class="card">
   <div class="label">ESTADO</div>
@@ -56,7 +56,10 @@ canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:
 <div class="card"><div class="grid">
   <div><div class="label">GIROSCOPIO</div><div class="value" id="gyroStatus">---</div></div>
   <div><div class="label">ÚLTIMO VEREDICTO DE GIRO</div><div class="value" id="gyroVerdict" style="font-size:16px;">---</div></div>
-</div><div class="note">Cada giro se cruza con el giroscopio real del teléfono. Si el compass dice que giraste pero el giroscopio no lo confirma (~40% mínimo), se descarta el giro — probable disturbio magnético (equipos de frío, cajas registradoras).</div></div>
+  <div><div class="label">DISTURBIO SOSTENIDO</div><div class="value" id="disturbanceStatus" style="font-size:16px;">OK</div></div>
+</div>
+<button id="resyncButton" class="secondary" style="margin-top:10px;">🧭 RESINCRONIZAR RUMBO AQUÍ</button>
+<div class="note">Cada giro se cruza con el giroscopio real del teléfono. Si el disturbio se sostiene más de 4s (ej. cerca de un equipo de frío), se congela la posición hasta que el compass se estabilice. Tocá el botón si querés forzar la resincronización vos mismo, apenas hayas pasado la zona conflictiva.</div></div>
 
 <div class="card routeCard">
   <div class="label">RECORRIDO RELATIVO</div>
@@ -286,6 +289,22 @@ const RESUME_MIN_DISTANCE_M=0.25;
    verificación se salta sola y todo sigue como en V2.0.5. */
 const GYRO_CONFIRM_RATIO=0.40;
 let gyroAvailable=false, gyroYawRate=0, gyroPitchRate=0, gyroRollRate=0, gyroTurnAccumDeg=0, lastGyroVerdict='';
+
+/* V2.0.8 — freeze por disturbio sostenido.
+   Probado con datos reales: un pico de compass corto (menos de 1-2s) lo
+   frena bien el veto de giroscopio de arriba. Pero un disturbio que se
+   sostiene muchos segundos (ej. parado cerca de un equipo de frío
+   grande) hace que hasta el giroscopio deje de servir — todo giroscopio
+   real tiene una deriva propia, y si se integra durante 60-90 segundos
+   esa deriva sola alcanza para que el sistema termine "confiando" en un
+   giro que nunca pasó. Un giro real nunca dura más de 2-3 segundos.
+   Si un giro sospechado (rechazado por el giroscopio) se sostiene más
+   de DISTURBANCE_FREEZE_MS sin resolverse, se congela: no se suma más
+   distancia ni se mueve el rumbo hasta que el compass se estabilice de
+   nuevo. Se pierde distancia real durante el freeze, pero es preferible
+   a inventar metros en una dirección que nunca se caminó. */
+const DISTURBANCE_FREEZE_MS=4000;
+let disturbanceSince=null, frozenByDisturbance=false;
 /* Heading integrado SOLO con giroscopio, desde el arranque del recorrido.
    Nunca se resetea salvo al iniciar un nuevo tracking. No sirve como
    fuente principal (el giroscopio real deriva con el tiempo), pero al
@@ -313,7 +332,7 @@ const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton')
 const timeEl=$('time'),distanceEl=$('distance'),stopCountEl=$('stopCount'),stoppedTimeEl=$('stoppedTime');
 const headingEl=$('heading'),turnEl=$('turn'),sourceEl=$('source'),frequencyEl=$('frequency'),turnStateEl=$('turnState'),headingRateEl=$('headingRate');
 const rawDistanceDiagEl=$('rawDistanceDiag'),filteredDistanceDiagEl=$('filteredDistanceDiag'),usedDistanceDiagEl=$('usedDistanceDiag'),distanceGainDiagEl=$('distanceGainDiag'),distanceModeDiagEl=$('distanceModeDiag');
-const gyroStatusEl=$('gyroStatus'),gyroVerdictEl=$('gyroVerdict');
+const gyroStatusEl=$('gyroStatus'),gyroVerdictEl=$('gyroVerdict'),disturbanceStatusEl=$('disturbanceStatus'),resyncButton=$('resyncButton');
 const activeStopEl=$('activeStop'),stopListEl=$('stopList'),zoneListEl=$('zoneList'),downloadCSV=$('downloadCSV');
 const layoutPanel=$('layoutPanel');
 const scaleValue=$('scaleValue'),originXValue=$('originXValue'),originYValue=$('originYValue'),rotationValue=$('rotationValue'),layoutSummary=$('layoutSummary');
@@ -321,6 +340,15 @@ const canvas=$('canvas'),ctx=canvas.getContext('2d');
 
 mainButton.addEventListener('click',async()=>{if(recording)finishTracking();else await startTracking();});
 $('resetButton').addEventListener('click',()=>{resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=true;layoutPanel.classList.remove('show');});
+resyncButton.addEventListener('click',()=>{
+  if(!recording||filteredHeading===null)return;
+  lockedHeading=filteredHeading;navHeading=filteredHeading;
+  turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;
+  slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;
+  turnEntryHeading=null;turnRawHeading=rawHeading;
+  gyroTurnAccumDeg=0;disturbanceSince=null;frozenByDisturbance=false;
+  lastGyroVerdict='RESYNC MANUAL';
+});
 
 async function startTracking(){
   try{
@@ -422,13 +450,26 @@ function updateNavigationHeading(now){
   const disagreement=Math.abs(deltaFromLock);
   const looksLikeSlowTurn=disagreement>=SLOW_TURN_SOFT_DELTA_DEG;
 
+  /* V2.0.8: cronómetro de disturbio sostenido. Corre mientras haya
+     CUALQUIER indicio de giro (candidato, confirmado, o ya en curso) —
+     no se reinicia entre ciclos rápidos de rechazo/reintento, así se
+     detecta un disturbio de muchos segundos aunque nunca "resuelva"
+     limpiamente entre medio (justo el patrón cerca de tu freezer). */
+  if(looksLikeTurn||looksLikeSlowTurn||turning||slowTurning){
+    if(disturbanceSince===null)disturbanceSince=now;
+    frozenByDisturbance=(now-disturbanceSince)>=DISTURBANCE_FREEZE_MS;
+  }else{
+    disturbanceSince=null;
+    frozenByDisturbance=false;
+  }
+
   /* 1) GIRO RÁPIDO — rawHeading, sin doble lag. */
   if(turning){
     if(turnRawHeading===null)turnRawHeading=rawHeading;
     const rawDelta=shortestAngle(turnRawHeading,rawHeading);
     const limitedDelta=Math.max(-RAW_TURN_MAX_STEP_DEG,Math.min(RAW_TURN_MAX_STEP_DEG,rawDelta));
     turnRawHeading=normalizeDegrees(turnRawHeading+limitedDelta);
-    navHeading=turnRawHeading;
+    navHeading=frozenByDisturbance?turnEntryHeading:turnRawHeading;
 
     if(absRate<=TURN_END_RATE_DPS){
       if(turnStableSince===null)turnStableSince=now;
@@ -456,14 +497,21 @@ function updateNavigationHeading(now){
 
   /* 2) GIRO LENTO — discrepancia grande y persistente, aunque rate sea bajo. */
   else if(slowTurning){
-    const towardFiltered=shortestAngle(navHeading,filteredHeading);
-    const remainingBefore=Math.abs(towardFiltered);
-    const maxStep=remainingBefore>=SLOW_TURN_IMMEDIATE_DELTA_DEG?SLOW_TURN_MAX_STEP_IMMEDIATE_DEG:
-                  remainingBefore>=SLOW_TURN_FAST_DELTA_DEG?SLOW_TURN_MAX_STEP_FAST_DEG:
-                  SLOW_TURN_MAX_STEP_SOFT_DEG;
-    const limited=Math.max(-maxStep,Math.min(maxStep,towardFiltered));
-    navHeading=normalizeDegrees(navHeading+limited);
-    lockedHeading=navHeading; // el lock acompaña gradualmente la maniobra real
+    if(frozenByDisturbance){
+      navHeading=turnEntryHeading;
+      /* lockedHeading NO se toca: se preserva el último rumbo confiable
+         mientras dure el disturbio, en vez de seguir acompañando al
+         compass distorsionado. */
+    }else{
+      const towardFiltered=shortestAngle(navHeading,filteredHeading);
+      const remainingBefore=Math.abs(towardFiltered);
+      const maxStep=remainingBefore>=SLOW_TURN_IMMEDIATE_DELTA_DEG?SLOW_TURN_MAX_STEP_IMMEDIATE_DEG:
+                    remainingBefore>=SLOW_TURN_FAST_DELTA_DEG?SLOW_TURN_MAX_STEP_FAST_DEG:
+                    SLOW_TURN_MAX_STEP_SOFT_DEG;
+      const limited=Math.max(-maxStep,Math.min(maxStep,towardFiltered));
+      navHeading=normalizeDegrees(navHeading+limited);
+      lockedHeading=navHeading; // el lock acompaña gradualmente la maniobra real
+    }
 
     const remaining=Math.abs(shortestAngle(navHeading,filteredHeading));
     if(remaining<=SLOW_TURN_END_DELTA_DEG && absRate<=TURN_START_RATE_DPS){
@@ -673,6 +721,7 @@ function motionHandler(e){
     headingRateEl.textContent=headingRateFiltered.toFixed(1);
     gyroStatusEl.textContent=gyroAvailable?(gyroYawRate.toFixed(1)+'°/s'):'NO DISPONIBLE';
     gyroVerdictEl.textContent=lastGyroVerdict||'---';
+    disturbanceStatusEl.textContent=frozenByDisturbance?'🥶 CONGELADO':(disturbanceSince!==null?'⚠️ vigilando...':'OK');
     frequencyEl.textContent=currentFrequency||'---';
     lastUiRefresh=now;
   }
@@ -686,7 +735,7 @@ function median(arr){
 }
 
 function makeRow(time,step=0,energy=0,ax='',ay='',az='',energyFast=0,rawDiagnosticStep=0,filteredBaseStep=0){
-  return {time,x,y,distance:totalDistance,step,energy,energy_fast:energyFast,raw_distance_step:rawDiagnosticStep,filtered_base_step:filteredBaseStep,raw_distance_total:rawDistanceDiagTotal,filtered_base_total:filteredDistanceBaseTotal,distance_recovery_gain:adaptiveDistanceGain,distance_mode:currentDistanceMode,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,heading_disagreement:(lockedHeading!==null&&filteredHeading!==null?shortestAngle(lockedHeading,filteredHeading):0),turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):(slowTurning?'SLOW_TURN':((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT')),stop_state:activeStop?(resumeCandidate?'RESUME_CHECK':'STOP_FROZEN'):(stopCandidate?'STOP_CANDIDATE':'MOVING'),source:headingSource??'',gyro_available:gyroAvailable?1:0,gyro_yaw_rate:gyroYawRate,gyro_pitch_rate:gyroPitchRate,gyro_roll_rate:gyroRollRate,gyro_turn_accum_deg:gyroTurnAccumDeg,gyro_heading_free:gyroHeadingFree??'',gyro_last_verdict:lastGyroVerdict,ax,ay,az};
+  return {time,x,y,distance:totalDistance,step,energy,energy_fast:energyFast,raw_distance_step:rawDiagnosticStep,filtered_base_step:filteredBaseStep,raw_distance_total:rawDistanceDiagTotal,filtered_base_total:filteredDistanceBaseTotal,distance_recovery_gain:adaptiveDistanceGain,distance_mode:currentDistanceMode,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,heading_disagreement:(lockedHeading!==null&&filteredHeading!==null?shortestAngle(lockedHeading,filteredHeading):0),turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):(slowTurning?'SLOW_TURN':((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT')),stop_state:activeStop?(resumeCandidate?'RESUME_CHECK':'STOP_FROZEN'):(stopCandidate?'STOP_CANDIDATE':'MOVING'),source:headingSource??'',gyro_available:gyroAvailable?1:0,gyro_yaw_rate:gyroYawRate,gyro_pitch_rate:gyroPitchRate,gyro_roll_rate:gyroRollRate,gyro_turn_accum_deg:gyroTurnAccumDeg,gyro_heading_free:gyroHeadingFree??'',gyro_last_verdict:lastGyroVerdict,frozen_by_disturbance:frozenByDisturbance?1:0,ax,ay,az};
 }
 
 /* =========================================================
@@ -735,6 +784,7 @@ function flushBuffer(buf){
 }
 
 function processMovementAndStops(energy,distanceEnergyNet,proposedStep,elapsed,now){
+  if(frozenByDisturbance)proposedStep=0; // V2.0.8: disturbio sostenido, no sumar metros fantasma
   const v=vectorForStep(proposedStep);
 
   /* Parada confirmada: posición congelada hasta que exista movimiento
@@ -863,7 +913,7 @@ function draw(){
   if(!storePlanLoaded){ctx.fillStyle='#666';ctx.font='18px sans-serif';ctx.fillText('Cargando layout-gran-union.png…',30,50);}
 }
 
-function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;turnEntryHeading=null;gyroTurnAccumDeg=0;lastGyroVerdict='';gyroHeadingFree=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';adaptiveDistanceGain=1.0;currentDistanceMode='NORMAL';distanceGainDiagEl.textContent='1.00×';distanceModeDiagEl.textContent='NORMAL';lastUiRefresh=0;lastDraw=0;turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;turnEntryHeading=null;gyroTurnAccumDeg=0;lastGyroVerdict='';gyroHeadingFree=null;disturbanceSince=null;frozenByDisturbance=false;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';adaptiveDistanceGain=1.0;currentDistanceMode='NORMAL';distanceGainDiagEl.textContent='1.00×';distanceModeDiagEl.textContent='NORMAL';lastUiRefresh=0;lastDraw=0;turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
 
 /* =========================================================
    V2.0 — AJUSTE TÉCNICO DEL LAYOUT (POST-RECORRIDO)
@@ -912,7 +962,7 @@ updateLayoutControls();
 /* CSV — único archivo completo: tracking + proyección al layout + zonas */
 downloadCSV.addEventListener('click',()=>{
   if(!route.length)return;
-  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','gyro_available','gyro_yaw_rate','gyro_pitch_rate','gyro_roll_rate','gyro_turn_accum_deg','gyro_heading_free','gyro_last_verdict','x_m','y_m','distance_step','total_distance','raw_distance_step','filtered_base_step','raw_distance_total','filtered_base_total','distance_recovery_gain','distance_mode','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
+  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','gyro_available','gyro_yaw_rate','gyro_pitch_rate','gyro_roll_rate','gyro_turn_accum_deg','gyro_heading_free','gyro_last_verdict','frozen_by_disturbance','x_m','y_m','distance_step','total_distance','raw_distance_step','filtered_base_step','raw_distance_total','filtered_base_total','distance_recovery_gain','distance_mode','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
   let csv=headers.join(',')+'\n';
   for(const r of route){
     const p=localToPlanCoords(r.x,r.y,layoutConfig);
@@ -926,7 +976,7 @@ downloadCSV.addEventListener('click',()=>{
   for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4),getStoreZoneName(z.x,z.y,layoutConfig)].join(',')+'\n';
   csv+='\nLAYOUT_SCALE_PX_PER_M,LAYOUT_ORIGIN_X,LAYOUT_ORIGIN_Y,LAYOUT_ROTATION_DEG\n'+[layoutConfig.scale.toFixed(3),layoutConfig.originX.toFixed(1),layoutConfig.originY.toFixed(1),layoutConfig.rotationDeg.toFixed(3)].join(',')+'\n';
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='tracker-mg-v207.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  a.href=url;a.download='tracker-mg-v208.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
 
 function normalizeDegrees(d){return((d%360)+360)%360;}
