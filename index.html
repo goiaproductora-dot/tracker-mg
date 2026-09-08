@@ -2,161 +2,787 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Diagnóstico Giroscopio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Tracker MG V2.0.12</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f4f5f7;margin:0;padding:16px;color:#111}
-.container{max-width:480px;margin:auto}
-h1{font-size:22px;margin:6px 0 4px}
-.subtitle{color:#666;margin-bottom:18px;font-size:14px}
-.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.big{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums}
-.label{color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
-.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-button{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:700;background:#0a7d3d;color:#fff;margin-bottom:10px}
-button.stop{background:#c0392b}
-.note{font-size:13px;color:#555;line-height:1.5;margin-top:8px}
-.bar-wrap{background:#eee;border-radius:8px;height:14px;overflow:hidden;margin:4px 0 10px}
-.bar{height:100%;background:#0a7d3d;transition:width .05s linear}
-.log{font-family:ui-monospace,monospace;font-size:11px;background:#0d1117;color:#c9d1d9;border-radius:10px;padding:10px;height:160px;overflow-y:auto;white-space:pre-wrap}
-.status{font-weight:700;padding:4px 10px;border-radius:8px;display:inline-block;font-size:13px}
-.ok{background:#d4edda;color:#155724}
-.bad{background:#f8d7da;color:#721c24}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:16px;background:#f2f2f7;color:#111}
+.container{max-width:720px;margin:auto}h1{margin:6px 0 2px;font-size:34px}.subtitle{color:#666;margin-bottom:18px}
+.card{background:#fff;border-radius:18px;padding:17px;margin-bottom:14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.label{color:#777;font-size:12px;margin-bottom:4px}.value{font-size:23px;font-weight:650}.big{font-size:34px;font-weight:750}
+.status{font-size:19px;font-weight:bold}.ok{color:#198754}.waiting{color:#d97706}.error{color:#dc3545}
+.mainButton,.secondary{width:100%;border:none;border-radius:17px;padding:20px;font-size:18px;font-weight:bold;margin-bottom:14px;color:#fff}.mainButton{background:#198754}.mainButton.stop{background:#dc3545}.secondary{background:#555;padding:15px;border-radius:14px;font-size:15px}.purple{background:#6f42c1}button:disabled{opacity:.45}
+canvas{width:100%;height:auto;display:block;border:1px solid #ddd;border-radius:15px;background:#fafafa}.routeCard{padding:8px}.routeCard .label{padding:6px 6px 0}.routeCard .note{padding:0 6px 6px}.routeCard canvas{width:100%;height:auto;max-height:none;aspect-ratio:760/1380}.note{font-size:13px;color:#666;line-height:1.45;margin-top:9px}
+.sensorInfo{margin-top:10px;padding:10px;border-radius:10px;background:#edf6ff;color:#125e9c;font-size:13px;font-weight:bold}
+.stopRow,.zoneRow{display:grid;grid-template-columns:45px 1fr 1fr;gap:8px;border-top:1px solid #eee;padding:10px 0;font-size:14px}.badge{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#dc3545;color:#fff;font-weight:bold}
+.raw{background:#6f42c1}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>🔬 Diagnóstico de Giroscopio</h1>
-<div class="subtitle">Verifica si rotationRate.alpha/beta/gamma responde a rotación real, antes de usarlo en el tracker.</div>
+<h1>🛒 Tracker MG V2.0.12</h1>
+<div class="subtitle">DISTANCIA ADAPTATIVA · resync manual · plano Gran Unión fijo (sin panel de ajuste) · sin giroscopio</div>
 
 <div class="card">
-  <div class="row"><span class="label">Disponibilidad</span><span id="availStatus" class="status bad">SIN DATOS</span></div>
-  <div class="note">Si dice "NO DISPONIBLE" después de tocar Iniciar, este navegador/teléfono no expone rotationRate — ahí termina el diagnóstico, el giroscopio no sirve como lo estábamos usando.</div>
+  <div class="label">ESTADO</div>
+  <div id="status" class="status waiting">● Listo para comenzar</div>
+  <div id="sensorInfo" class="sensorInfo">Un toque activa sensores y empieza el recorrido.</div>
+</div>
+<button id="mainButton" class="mainButton">▶ INICIAR TRACKING</button>
+
+<div class="card"><div class="grid">
+  <div><div class="label">TIEMPO</div><div class="big"><span id="time">0</span> s</div></div>
+  <div><div class="label">DISTANCIA EST.</div><div class="big"><span id="distance">0.0</span> m</div></div>
+  <div><div class="label">PARADAS</div><div id="stopCount" class="big">0</div></div>
+  <div><div class="label">TIEMPO PARADO</div><div class="big"><span id="stoppedTime">0</span> s</div></div>
+</div></div>
+
+<div class="card"><div class="grid">
+  <div><div class="label">DISTANCIA BRUTA SENSOR</div><div class="value"><span id="rawDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">DISTANCIA FILTRADA BASE</div><div class="value"><span id="filteredDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">DISTANCIA USADA</div><div class="value"><span id="usedDistanceDiag">0.0</span> m</div></div>
+  <div><div class="label">FACTOR ADAPTATIVO</div><div class="value"><span id="distanceGainDiag">1.00×</span></div></div>
+  <div><div class="label">MODO DISTANCIA</div><div class="value" id="distanceModeDiag">NORMAL</div></div>
+</div><div class="note">Diagnóstico: la distancia usada parte de la señal filtrada y ajusta automáticamente el factor según vibración y maniobra. No existe más un multiplicador global 1,22×.</div></div>
+
+<div class="card"><div class="grid">
+  <div><div class="label">DIRECCIÓN SENSOR</div><div class="value"><span id="heading">---</span>°</div></div>
+  <div><div class="label">GIRO USADO</div><div class="value"><span id="turn">---</span>°</div></div>
+  <div><div class="label">FUENTE</div><div id="source" class="value">---</div></div>
+  <div><div class="label">FRECUENCIA</div><div class="value"><span id="frequency">---</span> Hz</div></div>
+  <div><div class="label">ESTADO GIRO</div><div id="turnState" class="value">---</div></div>
+  <div><div class="label">VELOCIDAD ANGULAR</div><div class="value"><span id="headingRate">0.0</span>°/s</div></div>
+</div></div>
+
+<div class="card routeCard">
+  <div class="label">RECORRIDO RELATIVO</div>
+  <canvas id="canvas" width="760" height="1380"></canvas>
+  <div class="note">Plano Gran Unión en fondo · 🔴 inicio · 🟢 posición actual/final · círculos rojos = paradas · líneas suaves cada 2 m.<br><strong>Colocación:</strong> iPhone acostado, pantalla hacia arriba, modo retrato, borde superior apuntando al frente del carrito.</div>
 </div>
 
-<button id="startBtn">▶ INICIAR DIAGNÓSTICO</button>
+<button id="downloadCSV" class="secondary raw" disabled>DESCARGAR CSV</button>
+<button id="resetButton" class="secondary">BORRAR RECORRIDO</button>
+<button id="resyncButton" class="secondary">🧭 RESINCRONIZAR RUMBO AQUÍ</button>
 
 <div class="card">
-  <div class="label">ALPHA (yaw — girar el carrito izq/der)</div>
-  <div class="big"><span id="alphaVal">0.0</span>°/s</div>
-  <div class="bar-wrap"><div class="bar" id="alphaBar" style="width:0%"></div></div>
+  <h2>Paradas detectadas</h2>
+  <div class="note">Se confirma tras 3 s. Una vez confirmada, pequeños movimientos dentro de un radio de 2 m siguen siendo la misma parada.</div>
+  <div id="activeStop">Sin parada activa.</div>
+  <div id="stopList"><div class="note">Todavía no hay paradas.</div></div>
 </div>
 
 <div class="card">
-  <div class="row"><div><div class="label">BETA (pitch)</div><div class="big" style="font-size:24px"><span id="betaVal">0.0</span>°/s</div></div>
-  <div><div class="label">GAMMA (roll)</div><div class="big" style="font-size:24px"><span id="gammaVal">0.0</span>°/s</div></div></div>
+  <h2>Zonas automáticas</h2>
+  <div class="note">Por ahora Z1, Z2… agrupan paradas que ocurren a menos de 3 m entre sí. Luego podremos asociarlas al layout real de la tienda.</div>
+  <div id="zoneList"><div class="note">Todavía no hay zonas.</div></div>
 </div>
-
-<div class="card">
-  <div class="label">PICO MÁXIMO |ALPHA| DESDE INICIAR</div>
-  <div class="big"><span id="peakAlpha">0.0</span>°/s</div>
-  <div class="note" id="peakNote">Esperando datos...</div>
-</div>
-
-<div class="card">
-  <div class="label">REGISTRO (últimos eventos)</div>
-  <div class="log" id="log"></div>
-</div>
-
-<div class="card">
-  <b>Cómo hacer la prueba:</b>
-  <div class="note">
-  1. Tocá "Iniciar diagnóstico" y aceptá el permiso de movimiento.<br>
-  2. Dejá el teléfono <b>quieto</b> 5 segundos — ALPHA debería quedar cerca de 0.<br>
-  3. Ahora <b>girá el teléfono en la mano</b>, plano, como si girara el carrito 90° a la derecha, despacio primero y después rápido.<br>
-  4. Mirá el PICO MÁXIMO: si durante el giro real ALPHA no pasa de 3-5°/s, confirma que la señal no sirve tal como la estamos leyendo. Si sube claramente (15-60°/s o más) al girar y vuelve a 0 al quedar quieto, la señal SÍ sirve y el problema estaba en otro lado.
-  </div>
-</div>
-
 </div>
 
 <script>
-const alphaVal=document.getElementById('alphaVal');
-const betaVal=document.getElementById('betaVal');
-const gammaVal=document.getElementById('gammaVal');
-const alphaBar=document.getElementById('alphaBar');
-const availStatus=document.getElementById('availStatus');
-const peakAlphaEl=document.getElementById('peakAlpha');
-const peakNote=document.getElementById('peakNote');
-const logEl=document.getElementById('log');
-const startBtn=document.getElementById('startBtn');
+/* =========================================================
+   V2.0.2 — PRINCIPIO
+   - NO usa gyro para dirección.
+   - iPhone: webkitCompassHeading.
+   - Android: alpha.
+   - Bloquea pequeñas derivas mientras se avanza recto.
+   - Sólo libera la dirección cuando detecta un giro REAL y sostenido.
+========================================================= */
 
-let peakAlpha=0;
-let running=false;
-let sampleCount=0;
-let lastLogTime=0;
+const IS_IOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+const DISTANCE_FACTOR=IS_IOS?0.438:0.413; // iPhone fijado en 0.438
+/* PLANO GRAN UNIÓN — configuración fija del local.
+   Se reutiliza la escala obtenida en nuestras calibraciones previas;
+   no requiere marcar A/B en cada recorrido. */
+const STORE_IMAGE='layout-gran-union.png?v=19';
+/* V2.0: baseline final de Gran Unión. El tracking local (x,y) NO cambia.
+   Esta transformación queda fija — sin panel de ajuste manual. */
+const DEFAULT_LAYOUT={scale:54.5,originX:2540,originY:820,rotationDeg:0};
+const layoutConfig={...DEFAULT_LAYOUT};
+const storePlan=new Image();
+let storePlanLoaded=false;
+storePlan.onload=()=>{storePlanLoaded=true;draw();};
+storePlan.src=STORE_IMAGE;
 
-function log(msg){
-  const t=new Date().toLocaleTimeString();
-  logEl.textContent = `[${t}] ${msg}\n` + logEl.textContent;
+const MOVEMENT_THRESHOLD=0.055;
+const STOP_CONFIRM_SECONDS=3;
+const STOP_CONFIRM_RADIUS_METERS=0.75;
+const STOP_ZONE_RADIUS_METERS=2.0;
+const ZONE_RADIUS_METERS=3.0;
+
+/* =========================================================
+   ZONAS REALES — GRAN UNIÓN
+   Coordenadas en el PNG original (2594 x 1836).
+   Se usan como anclas de proximidad: una parada toma el nombre
+   de la zona más cercana sólo si cae dentro del radio definido.
+   Si no, se conserva como "ZONA SIN DEFINIR" para no inventar.
+
+   El plano fuente identifica, entre otras, FRUTAS Y VERDURAS,
+   PANES PROPIOS, CARNICERÍA, PASTAS Y LÁCTEOS, BEBIDAS,
+   ROTISERÍA/FIAMBRES, perfumería, limpieza y mascotas.
+   Estos centros son una primera parametrización operacional y
+   están separados del algoritmo para poder afinarlos sin tocar tracking.
+========================================================= */
+const STORE_ZONE_ANCHORS=[
+  {name:'FRUTAS Y VERDURAS', px:1810, py:690, radiusM:8.0},
+  {name:'PANADERÍA',          px:760,  py:710, radiusM:8.0},
+  {name:'PASTAS Y LÁCTEOS',   px:1320, py:730, radiusM:8.0},
+  {name:'BEBIDAS',            px:1510, py:780, radiusM:8.0},
+  {name:'CARNICERÍA',         px:520,  py:1485,radiusM:8.5},
+  {name:'ROTISERÍA / FIAMBRES',px:980, py:1360,radiusM:8.0},
+  {name:'PERFUMERÍA',         px:470,  py:1010,radiusM:8.0},
+  {name:'LIMPIEZA',           px:850,  py:1050,radiusM:8.0},
+  {name:'ALMACÉN',            px:1320, py:1060,radiusM:9.0},
+  {name:'MASCOTAS',           px:1660, py:1070,radiusM:8.0},
+  {name:'CAJAS',              px:2050, py:1130,radiusM:9.0}
+];
+
+
+/* Dirección V1.5: giro rápido + maniobras compuestas.
+   - En recta seguimos usando heading filtrado/bloqueado.
+   - Durante TURNING usamos rawHeading, pero con limitador anti-picos.
+   - Una pausa corta entre dos giros no cierra la maniobra: estado COMPOUND. */
+const HEADING_SMOOTH=0.32;
+const RATE_SMOOTH=0.25;
+const TURN_START_RATE_DPS=10;
+const TURN_START_DELTA_DEG=10;
+const TURN_CONFIRM_MS=160;
+const TURN_END_RATE_DPS=4.5;
+const TURN_END_MS=260;
+const TURN_BRIDGE_MS=1800;               // recta breve entre giros = misma maniobra
+const STRAIGHT_DRIFT_ALLOW_DEG=8;
+const RAW_TURN_MAX_STEP_DEG=12;          // limita saltos aislados del compass
+const MAX_REASONABLE_RATE_DPS=180;
+
+/* V2.0.4 — SNAP DE GIROS REALES DE 90°.
+   El piso rugoso puede contaminar el compass justo durante una maniobra.
+   Si un giro terminado quedó cerca de 90°/180°, cerramos el ángulo al valor
+   geométrico esperado. NO fuerza diagonales ni curvas que estén lejos. */
+const ORTHO_SNAP_TOLERANCE_DEG=22;
+const ORTHO_SNAP_MIN_TURN_DEG=60;
+
+/* UI desacoplada de los sensores: integrar a ~60 Hz, pintar sólo 6-8 Hz.
+   Evita parpadeos/reflow y reduce la posibilidad de que Safari pierda eventos. */
+const UI_REFRESH_MS=160;
+const CANVAS_REFRESH_MS=140;
+
+/* V1.8/V1.9 — GIRO LENTO REACTIVO (tracking congelado en V2.0).
+   La V1.7 podía permanecer demasiado tiempo bloqueada cuando el cambio
+   de rumbo era real pero gradual. Ahora la discrepancia tiene 3 niveles:
+   >12° sostenidos 0.6 s: GIRO LENTO; >20°: entrada rápida; >30°: inmediata. */
+const SLOW_TURN_SOFT_DELTA_DEG=12;
+const SLOW_TURN_SOFT_CONFIRM_MS=600;
+const SLOW_TURN_FAST_DELTA_DEG=20;
+const SLOW_TURN_IMMEDIATE_DELTA_DEG=30;
+const SLOW_TURN_MAX_STEP_SOFT_DEG=1.5;
+const SLOW_TURN_MAX_STEP_FAST_DEG=3.0;
+const SLOW_TURN_MAX_STEP_IMMEDIATE_DEG=5.0;
+const SLOW_TURN_END_DELTA_DEG=5;
+const SLOW_TURN_END_MS=400;
+
+
+/* Filtro anti-vibración V1.6.
+   El carrito golpea, patina o pasa juntas de piso: eso mete picos de
+   aceleración de alta frecuencia que la energía "rápida" (usada para
+   detectar paradas) traduce en distancia de más.
+   - filteredEnergy (rápida) sigue igual, solo para detectar paradas.
+   - distanceEnergy (lenta) es la que ahora se usa para integrar metros:
+     primero pasa por una mediana de ventana corta (mata picos aislados
+     de 1-2 muestras sin tocar el ritmo real de empuje), y después por
+     un pasa-bajos bastante más lento que la energía rápida. */
+const MEDIAN_WINDOW=3;                 // V2.0.2: menos agresivo; conserva más movimiento real
+const DISTANCE_ENERGY_SMOOTH=0.18;     // responde antes al empuje sostenido
+const DISTANCE_MOVEMENT_THRESHOLD=0.035; // separado del umbral de paradas (0.055)
+const RAW_DISTANCE_THRESHOLD=0.055;
+/* V2.0.5 — se retira la penalización por maniobra.
+   V2.0.4 asumía que girar consume ~20-28% de la energía en rotación
+   pura (no avance) y descontaba distancia según el estado (GIRO,
+   MANIOBRA, GIRO COMPUESTO). Esa cifra nunca estuvo medida — era una
+   suposición, igual que la corrección que se evaluó de subirla a
+   0.90-0.95: mismo tipo de ajuste a ojo, solo que más chico.
+   En la práctica esa penalización fue la causa directa de que el
+   trazado quedara corto en curvas amplias (ej. bordear la cafetería):
+   dos pasadas de campo mostraron 5-7 m "perdidos" exactamente en los
+   tramos de GIRO/MANIOBRA/GIRO COMPUESTO.
+   Acá el factor de maniobra queda casi neutralizado (0.97-1.0) y el
+   único descuento real que queda activo es el de vibración, que sí
+   está atado a energía medida en vez de a una suposición sobre qué
+   fracción del movimiento fue "solo rotación".
+   Para calibrar DISTANCE_FACTOR con algo más firme que impresión
+   visual: medí con cinta un tramo real del local (ej. INICIO hasta
+   la esquina de bebidas) y comparalo contra total_distance en el CSV
+   en ese punto exacto. */
+const DISTANCE_BASE_GAIN=1.02;
+const VIBRATION_MEDIUM=2.4;
+const VIBRATION_HIGH=3.2;
+const VIBRATION_SEVERE=4.5;
+const GAIN_SMOOTH=0.18;
+
+/* V1.8 — parada inteligente.
+   Al detectar una parada, XY y distancia quedan congelados. Para reanudar
+   exigimos movimiento claro y sostenido; los primeros metros se guardan
+   temporalmente y se recuperan si realmente era una reanudación. */
+const STOP_ENTER_ENERGY=0.02;
+const RESUME_ENERGY_THRESHOLD=0.18;
+const RESUME_CONFIRM_MS=750;
+const RESUME_MIN_DISTANCE_M=0.25;
+
+let sensorsInitialized=false, recording=false;
+let headingSource=null, rawHeading=null, filteredHeading=null;
+let lockedHeading=null, navHeading=null, routeStartNavHeading=null;
+let prevFilteredHeading=null, prevHeadingTime=null, headingRate=0, headingRateFiltered=0;
+let turning=false, compoundTurn=false, turnCandidateSince=null, turnStableSince=null, turnBridgeUntil=null;
+let slowTurning=false, slowTurnCandidateSince=null, slowTurnStableSince=null;
+let turnRawHeading=null,turnEntryHeading=null;
+let lastMotionTime=null, filteredEnergy=0, routeStartTime=null;
+let magnitudeBuffer=[], distanceEnergy=0, adaptiveDistanceGain=1.0, currentDistanceMode="NORMAL";
+let totalDistance=0,rawDistanceDiagTotal=0,filteredDistanceBaseTotal=0,x=0,y=0,route=[],stops=[],zones=[];
+let stopCandidate=null,activeStop=null,stoppedSeconds=0,resumeCandidate=null;
+let sampleCounter=0,frequencyStart=performance.now(),lastDraw=0,lastUiRefresh=0,currentFrequency=0;
+
+const $=id=>document.getElementById(id);
+const statusEl=$('status'),sensorInfo=$('sensorInfo'),mainButton=$('mainButton');
+const timeEl=$('time'),distanceEl=$('distance'),stopCountEl=$('stopCount'),stoppedTimeEl=$('stoppedTime');
+const headingEl=$('heading'),turnEl=$('turn'),sourceEl=$('source'),frequencyEl=$('frequency'),turnStateEl=$('turnState'),headingRateEl=$('headingRate');
+const rawDistanceDiagEl=$('rawDistanceDiag'),filteredDistanceDiagEl=$('filteredDistanceDiag'),usedDistanceDiagEl=$('usedDistanceDiag'),distanceGainDiagEl=$('distanceGainDiag'),distanceModeDiagEl=$('distanceModeDiag');
+const activeStopEl=$('activeStop'),stopListEl=$('stopList'),zoneListEl=$('zoneList'),downloadCSV=$('downloadCSV');
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+
+mainButton.addEventListener('click',async()=>{if(recording)finishTracking();else await startTracking();});
+$('resetButton').addEventListener('click',()=>{resetRouteOnly();statusEl.textContent='● Listo para comenzar';statusEl.className='status waiting';mainButton.textContent='▶ INICIAR TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=true;});
+$('resyncButton').addEventListener('click',()=>{
+  /* V2.0.11: resync manual, sin depender de ningún sensor nuevo.
+     Vos reconocés que ya pasaste la zona conflictiva (ej. el freezer)
+     y le decís al sistema "seguí derecho desde acá con el rumbo actual". */
+  if(!recording||filteredHeading===null)return;
+  lockedHeading=filteredHeading;navHeading=filteredHeading;
+  turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;
+  slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;
+  turnEntryHeading=null;turnRawHeading=rawHeading;
+});
+
+async function startTracking(){
+  try{
+    await initializeSensors();
+    const ready=await waitForHeading();
+    if(!ready) throw new Error('No hay sensor de orientación disponible');
+    resetRouteOnly();
+    lockedHeading=filteredHeading;
+    navHeading=filteredHeading;
+    routeStartNavHeading=filteredHeading;
+    prevFilteredHeading=filteredHeading;
+    prevHeadingTime=performance.now();
+    routeStartTime=performance.now();
+    recording=true;
+    route.push(makeRow(0,0));
+    statusEl.textContent='● TRACKING ACTIVO';statusEl.className='status ok';
+    sensorInfo.textContent='Dirección: '+headingSource+'-LOCK · perfil '+(IS_IOS?'iPhone':'Android')+' · factor '+DISTANCE_FACTOR.toFixed(3);
+    mainButton.textContent='■ FINALIZAR TRACKING';mainButton.classList.add('stop');downloadCSV.disabled=true;draw();
+  }catch(e){statusEl.textContent='● '+e.message;statusEl.className='status error';}
 }
 
-function handler(e){
-  sampleCount++;
-  const rr=e.rotationRate;
-  if(!rr || rr.alpha===null || rr.alpha===undefined || !Number.isFinite(rr.alpha)){
-    availStatus.textContent='NO DISPONIBLE';
-    availStatus.className='status bad';
-    return;
-  }
-  availStatus.textContent='DISPONIBLE';
-  availStatus.className='status ok';
+function finishTracking(){
+  if(activeStop)finishActiveStop();
+  recording=false;
+  statusEl.textContent='● FINALIZADO — '+totalDistance.toFixed(1)+' m';statusEl.className='status waiting';
+  mainButton.textContent='▶ INICIAR NUEVO TRACKING';mainButton.classList.remove('stop');downloadCSV.disabled=route.length===0;draw();
+}
 
-  const a=rr.alpha||0, b=rr.beta||0, g=rr.gamma||0;
-  alphaVal.textContent=a.toFixed(1);
-  betaVal.textContent=b.toFixed(1);
-  gammaVal.textContent=g.toFixed(1);
-  const pct=Math.min(100, Math.abs(a)/90*100);
-  alphaBar.style.width=pct+'%';
-
-  if(Math.abs(a)>Math.abs(peakAlpha)){
-    peakAlpha=a;
-    peakAlphaEl.textContent=Math.abs(peakAlpha).toFixed(1);
+async function initializeSensors(){
+  if(sensorsInitialized)return;
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+    const r=await DeviceMotionEvent.requestPermission();if(r!=='granted')throw new Error('Permiso de movimiento rechazado');
   }
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('Permiso de orientación rechazado');
+  }
+  window.addEventListener('deviceorientation',orientationHandler);
+  window.addEventListener('devicemotion',motionHandler);
+  sensorsInitialized=true;
+}
+
+function waitForHeading(){return new Promise(resolve=>{const start=performance.now();const t=setInterval(()=>{if(filteredHeading!==null){clearInterval(t);resolve(true);}else if(performance.now()-start>1800){clearInterval(t);resolve(false);}},50);});}
+
+function orientationHandler(e){
+  let h=null;
+  if(e.webkitCompassHeading!==undefined&&e.webkitCompassHeading!==null&&Number.isFinite(e.webkitCompassHeading)){
+    h=e.webkitCompassHeading;headingSource='COMPASS';
+  }else if(e.alpha!==undefined&&e.alpha!==null&&Number.isFinite(e.alpha)){
+    h=normalizeDegrees(360-e.alpha);headingSource='ALPHA';
+  }
+  if(h===null)return;
+  rawHeading=h;
+  if(filteredHeading===null)filteredHeading=h;
+  else filteredHeading=normalizeDegrees(filteredHeading+shortestAngle(filteredHeading,h)*HEADING_SMOOTH);
 
   const now=performance.now();
-  if(now-lastLogTime>400){
-    log(`alpha=${a.toFixed(1)}°/s  beta=${b.toFixed(1)}°/s  gamma=${g.toFixed(1)}°/s`);
-    lastLogTime=now;
+  if(prevFilteredHeading!==null&&prevHeadingTime!==null){
+    let dt=(now-prevHeadingTime)/1000;
+    if(dt>0&&dt<0.3){
+      let rate=shortestAngle(prevFilteredHeading,filteredHeading)/dt;
+      rate=Math.max(-MAX_REASONABLE_RATE_DPS,Math.min(MAX_REASONABLE_RATE_DPS,rate));
+      headingRate=rate;
+      headingRateFiltered=headingRateFiltered*(1-RATE_SMOOTH)+rate*RATE_SMOOTH;
+    }
+  }
+  prevFilteredHeading=filteredHeading;prevHeadingTime=now;
+  if(recording)updateNavigationHeading(now);
+}
+
+function snapCompletedTurn(entryHeading, candidateHeading){
+  if(entryHeading===null||candidateHeading===null)return candidateHeading;
+  const d=shortestAngle(entryHeading,candidateHeading);
+  const ad=Math.abs(d);
+  if(ad<ORTHO_SNAP_MIN_TURN_DEG)return candidateHeading;
+  const targets=[90,180];
+  let best=null,bestErr=Infinity;
+  for(const t of targets){
+    const err=Math.abs(ad-t);
+    if(err<bestErr){bestErr=err;best=t;}
+  }
+  if(best!==null && bestErr<=ORTHO_SNAP_TOLERANCE_DEG){
+    const signed=(d<0?-best:best);
+    return normalizeDegrees(entryHeading+signed);
+  }
+  return candidateHeading;
+}
+
+function updateNavigationHeading(now){
+  if(lockedHeading===null){
+    lockedHeading=filteredHeading;
+    navHeading=filteredHeading;
+    turnRawHeading=rawHeading;
+    return;
+  }
+
+  const deltaFromLock=shortestAngle(lockedHeading,filteredHeading);
+  const absRate=Math.abs(headingRateFiltered);
+  const looksLikeTurn=Math.abs(deltaFromLock)>=TURN_START_DELTA_DEG&&absRate>=TURN_START_RATE_DPS;
+  const disagreement=Math.abs(deltaFromLock);
+  const looksLikeSlowTurn=disagreement>=SLOW_TURN_SOFT_DELTA_DEG;
+
+  /* 1) GIRO RÁPIDO — rawHeading, sin doble lag. */
+  if(turning){
+    if(turnRawHeading===null)turnRawHeading=rawHeading;
+    const rawDelta=shortestAngle(turnRawHeading,rawHeading);
+    const limitedDelta=Math.max(-RAW_TURN_MAX_STEP_DEG,Math.min(RAW_TURN_MAX_STEP_DEG,rawDelta));
+    turnRawHeading=normalizeDegrees(turnRawHeading+limitedDelta);
+    navHeading=turnRawHeading;
+
+    if(absRate<=TURN_END_RATE_DPS){
+      if(turnStableSince===null)turnStableSince=now;
+      if(now-turnStableSince>=TURN_END_MS){
+        turning=false;
+        navHeading=snapCompletedTurn(turnEntryHeading,navHeading);
+        lockedHeading=navHeading;
+        turnEntryHeading=null;
+        turnStableSince=null;
+        turnBridgeUntil=now+TURN_BRIDGE_MS;
+      }
+    }else turnStableSince=null;
+  }
+
+  /* 2) GIRO LENTO — discrepancia grande y persistente, aunque rate sea bajo. */
+  else if(slowTurning){
+    const towardFiltered=shortestAngle(navHeading,filteredHeading);
+    const remainingBefore=Math.abs(towardFiltered);
+    const maxStep=remainingBefore>=SLOW_TURN_IMMEDIATE_DELTA_DEG?SLOW_TURN_MAX_STEP_IMMEDIATE_DEG:
+                  remainingBefore>=SLOW_TURN_FAST_DELTA_DEG?SLOW_TURN_MAX_STEP_FAST_DEG:
+                  SLOW_TURN_MAX_STEP_SOFT_DEG;
+    const limited=Math.max(-maxStep,Math.min(maxStep,towardFiltered));
+    navHeading=normalizeDegrees(navHeading+limited);
+    lockedHeading=navHeading; // el lock acompaña gradualmente la maniobra real
+
+    const remaining=Math.abs(shortestAngle(navHeading,filteredHeading));
+    if(remaining<=SLOW_TURN_END_DELTA_DEG && absRate<=TURN_START_RATE_DPS){
+      if(slowTurnStableSince===null)slowTurnStableSince=now;
+      if(now-slowTurnStableSince>=SLOW_TURN_END_MS){
+        slowTurning=false;
+        slowTurnStableSince=null;
+        slowTurnCandidateSince=null;
+        navHeading=snapCompletedTurn(turnEntryHeading,navHeading);
+        lockedHeading=navHeading;
+        turnEntryHeading=null;
+        turnBridgeUntil=now+TURN_BRIDGE_MS;
+      }
+    }else slowTurnStableSince=null;
+
+    /* Si acelera mientras estábamos en giro lento, pasa a TURNING real. */
+    if(looksLikeTurn){
+      slowTurning=false;
+      slowTurnCandidateSince=null;
+      slowTurnStableSince=null;
+      turning=true;
+      turnEntryHeading=lockedHeading;
+      compoundTurn=(turnBridgeUntil!==null&&now<=turnBridgeUntil);
+      turnBridgeUntil=null;
+      turnRawHeading=rawHeading;
+      navHeading=rawHeading;
+    }
+  }
+
+  /* 3) RECTA / MANIOBRA — COMPASS-LOCK. */
+  else{
+    navHeading=lockedHeading;
+
+    if(looksLikeTurn){
+      slowTurnCandidateSince=null;
+      if(turnCandidateSince===null)turnCandidateSince=now;
+      if(now-turnCandidateSince>=TURN_CONFIRM_MS){
+        turning=true;
+        turnEntryHeading=lockedHeading;
+        compoundTurn=(turnBridgeUntil!==null&&now<=turnBridgeUntil);
+        turnCandidateSince=null;
+        turnStableSince=null;
+        turnBridgeUntil=null;
+        turnRawHeading=rawHeading;
+        navHeading=rawHeading;
+      }
+    }else{
+      turnCandidateSince=null;
+
+      /* V1.8: desbloqueo escalonado por discrepancia persistente. */
+      if(disagreement>=SLOW_TURN_IMMEDIATE_DELTA_DEG){
+        slowTurning=true;
+        turnEntryHeading=lockedHeading;
+        slowTurnCandidateSince=null;
+        slowTurnStableSince=null;
+        navHeading=lockedHeading;
+      }else if(disagreement>=SLOW_TURN_FAST_DELTA_DEG){
+        if(slowTurnCandidateSince===null)slowTurnCandidateSince=now;
+        if(now-slowTurnCandidateSince>=180){
+          slowTurning=true;
+          turnEntryHeading=lockedHeading;
+          slowTurnStableSince=null;
+          navHeading=lockedHeading;
+        }
+      }else if(looksLikeSlowTurn){
+        if(slowTurnCandidateSince===null)slowTurnCandidateSince=now;
+        if(now-slowTurnCandidateSince>=SLOW_TURN_SOFT_CONFIRM_MS){
+          slowTurning=true;
+          turnEntryHeading=lockedHeading;
+          slowTurnStableSince=null;
+          navHeading=lockedHeading;
+        }
+      }else{
+        slowTurnCandidateSince=null;
+
+        /* Ventana de giro compuesto. */
+        if(turnBridgeUntil!==null){
+          if(now>turnBridgeUntil){
+            turnBridgeUntil=null;
+            compoundTurn=false;
+          }
+        }else if(Math.abs(deltaFromLock)<=STRAIGHT_DRIFT_ALLOW_DEG){
+          /* Microcorrección de drift, deliberadamente lenta. */
+          lockedHeading=normalizeDegrees(lockedHeading+deltaFromLock*0.01);
+          navHeading=lockedHeading;
+        }
+      }
+    }
+  }
+
+  if(turning) turnStateEl.textContent=compoundTurn?'GIRO COMPUESTO':'GIRANDO';
+  else if(slowTurning) turnStateEl.textContent='GIRO LENTO';
+  else if(turnBridgeUntil!==null&&now<=turnBridgeUntil) turnStateEl.textContent='MANIOBRA';
+  else turnStateEl.textContent='RECTO';
+
+  if(routeStartNavHeading!==null){
+    turnEl.textContent=shortestAngle(routeStartNavHeading,navHeading).toFixed(1);
   }
 }
 
-startBtn.addEventListener('click', async ()=>{
-  if(running){
-    window.removeEventListener('devicemotion', handler);
-    running=false;
-    startBtn.textContent='▶ INICIAR DIAGNÓSTICO';
-    startBtn.classList.remove('stop');
-    log('Diagnóstico detenido.');
-    return;
-  }
-  try{
-    if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPermission==='function'){
-      const r = await DeviceMotionEvent.requestPermission();
-      if(r!=='granted'){ log('Permiso de movimiento RECHAZADO.'); return; }
-    }
-  }catch(err){
-    log('Error pidiendo permiso: '+err.message);
-    return;
-  }
-  peakAlpha=0;
-  peakAlphaEl.textContent='0.0';
-  peakNote.textContent='Girá el teléfono ahora...';
-  sampleCount=0;
-  window.addEventListener('devicemotion', handler);
-  running=true;
-  startBtn.textContent='■ DETENER';
-  startBtn.classList.add('stop');
-  log('Diagnóstico iniciado. Quieto 5s, después girá el teléfono.');
+function getAdaptiveDistanceGain(energyFast){
+  // Factor por vibración: el piso rugoso no debe transformarse en metros extra.
+  let vibrationFactor=1.0;
+  let vibrationLabel='NORMAL';
+  if(energyFast>=VIBRATION_SEVERE){vibrationFactor=0.82;vibrationLabel='VIBRACIÓN ALTA';}
+  else if(energyFast>=VIBRATION_HIGH){vibrationFactor=0.90;vibrationLabel='VIBRACIÓN';}
+  else if(energyFast>=VIBRATION_MEDIUM){vibrationFactor=0.97;vibrationLabel='VIBRACIÓN MEDIA';}
 
-  setTimeout(()=>{
-    if(sampleCount===0){
-      availStatus.textContent='SIN EVENTOS';
-      availStatus.className='status bad';
-      log('No llegó ningún evento devicemotion en 2s.');
+  // Factor por maniobra V2.0.5: casi neutralizado (ver comentario arriba).
+  // Se deja una fricción mínima porque durante un giro muy cerrado el
+  // paso real puede acortarse un poco, pero ya no se asume que 1/4 o
+  // 1/5 de la energía de un giro es "solo rotación".
+  let maneuverFactor=1.0;
+  let maneuverLabel='RECTA';
+  if(turning && compoundTurn){maneuverFactor=0.97;maneuverLabel='GIRO COMPUESTO';}
+  else if(turning){maneuverFactor=0.98;maneuverLabel='GIRO';}
+  else if(slowTurning){maneuverFactor=1.0;maneuverLabel='GIRO LENTO';}
+  else if(turnBridgeUntil!==null && performance.now()<=turnBridgeUntil){maneuverFactor=0.98;maneuverLabel='MANIOBRA';}
+
+  const gain=DISTANCE_BASE_GAIN*vibrationFactor*maneuverFactor;
+  return {gain,mode:(vibrationLabel==='NORMAL'?maneuverLabel:(maneuverLabel==='RECTA'?vibrationLabel:vibrationLabel+' + '+maneuverLabel))};
+}
+
+function motionHandler(e){
+  const now=performance.now();sampleCounter++;
+  if(now-frequencyStart>=1000){currentFrequency=sampleCounter;sampleCounter=0;frequencyStart=now;}
+  if(lastMotionTime===null){lastMotionTime=now;return;}
+  let dt=(now-lastMotionTime)/1000;lastMotionTime=now;if(dt>0.1)dt=0.1;
+  const a=e.acceleration;if(!a)return;
+  const ax=a.x||0,ay=a.y||0,az=a.z||0;
+  const magnitude=Math.sqrt(ax*ax+ay*ay+az*az);
+
+  /* Energía rápida (sin cambios): sigue siendo la que detecta paradas/arranques. */
+  filteredEnergy=filteredEnergy*0.75+magnitude*0.25;
+  const energy=Math.max(0,filteredEnergy-MOVEMENT_THRESHOLD);
+
+  /* Energía lenta anti-vibración: mediana de las últimas MEDIAN_WINDOW
+     muestras (mata picos aislados de rebote/piso) + pasa-bajos lento.
+     Esta es la que ahora integra la distancia. */
+  magnitudeBuffer.push(magnitude);
+  if(magnitudeBuffer.length>MEDIAN_WINDOW)magnitudeBuffer.shift();
+  const despiked=median(magnitudeBuffer);
+  distanceEnergy=distanceEnergy*(1-DISTANCE_ENERGY_SMOOTH)+despiked*DISTANCE_ENERGY_SMOOTH;
+  const distanceEnergyNet=Math.max(0,distanceEnergy-DISTANCE_MOVEMENT_THRESHOLD);
+  const rawDistanceEnergyNet=Math.max(0,filteredEnergy-RAW_DISTANCE_THRESHOLD);
+
+  if(!recording||navHeading===null||routeStartNavHeading===null)return;
+
+  // Tres lecturas distintas:
+  // 1) bruta: referencia diagnóstica (más sensible a vibración)
+  // 2) filtrada base: señal anti-vibración
+  // 3) usada: filtrada base * factor adaptativo; ésta mueve el XY
+  let rawDiagnosticStep=rawDistanceEnergyNet*dt*DISTANCE_FACTOR;if(rawDiagnosticStep>0.20)rawDiagnosticStep=0.20;
+  let filteredBaseStep=distanceEnergyNet*dt*DISTANCE_FACTOR;if(filteredBaseStep>0.20)filteredBaseStep=0.20;
+
+  const gainInfo=getAdaptiveDistanceGain(filteredEnergy);
+  adaptiveDistanceGain=adaptiveDistanceGain*(1-GAIN_SMOOTH)+gainInfo.gain*GAIN_SMOOTH;
+  currentDistanceMode=gainInfo.mode;
+  let proposedStep=filteredBaseStep*adaptiveDistanceGain;if(proposedStep>0.20)proposedStep=0.20;
+
+  rawDistanceDiagTotal+=rawDiagnosticStep;
+  filteredDistanceBaseTotal+=filteredBaseStep;
+
+  const elapsed=(now-routeStartTime)/1000;
+  const movementResult=processMovementAndStops(energy,distanceEnergyNet,proposedStep,elapsed,now);
+  const appliedStep=movementResult.appliedStep;
+  route.push(makeRow(elapsed,appliedStep,distanceEnergyNet,ax,ay,az,energy,rawDiagnosticStep,filteredBaseStep));
+  if(now-lastUiRefresh>UI_REFRESH_MS){
+    timeEl.textContent=elapsed.toFixed(0);distanceEl.textContent=totalDistance.toFixed(1);
+    rawDistanceDiagEl.textContent=rawDistanceDiagTotal.toFixed(1);
+    filteredDistanceDiagEl.textContent=filteredDistanceBaseTotal.toFixed(1);
+    usedDistanceDiagEl.textContent=totalDistance.toFixed(1);
+    distanceGainDiagEl.textContent=adaptiveDistanceGain.toFixed(2)+'×';
+    distanceModeDiagEl.textContent=currentDistanceMode;
+    headingEl.textContent=(filteredHeading??0).toFixed(1);
+    sourceEl.textContent=(headingSource??'')+'-LOCK';
+    headingRateEl.textContent=headingRateFiltered.toFixed(1);
+    frequencyEl.textContent=currentFrequency||'---';
+    lastUiRefresh=now;
+  }
+  if(now-lastDraw>CANVAS_REFRESH_MS){draw();lastDraw=now;}
+}
+
+function median(arr){
+  const s=[...arr].sort((p,q)=>p-q);
+  const mid=Math.floor(s.length/2);
+  return s.length%2!==0?s[mid]:(s[mid-1]+s[mid])/2;
+}
+
+function makeRow(time,step=0,energy=0,ax='',ay='',az='',energyFast=0,rawDiagnosticStep=0,filteredBaseStep=0){
+  return {time,x,y,distance:totalDistance,step,energy,energy_fast:energyFast,raw_distance_step:rawDiagnosticStep,filtered_base_step:filteredBaseStep,raw_distance_total:rawDistanceDiagTotal,filtered_base_total:filteredDistanceBaseTotal,distance_recovery_gain:adaptiveDistanceGain,distance_mode:currentDistanceMode,raw_heading:rawHeading??'',filtered_heading:filteredHeading??'',nav_heading:navHeading??filteredHeading??'',turn:routeStartNavHeading!==null&&navHeading!==null?shortestAngle(routeStartNavHeading,navHeading):0,heading_rate:headingRateFiltered,heading_disagreement:(lockedHeading!==null&&filteredHeading!==null?shortestAngle(lockedHeading,filteredHeading):0),turn_state:turning?(compoundTurn?'COMPOUND_TURN':'TURNING'):(slowTurning?'SLOW_TURN':((turnBridgeUntil!==null&&performance.now()<=turnBridgeUntil)?'MANEUVER':'STRAIGHT')),stop_state:activeStop?(resumeCandidate?'RESUME_CHECK':'STOP_FROZEN'):(stopCandidate?'STOP_CANDIDATE':'MOVING'),source:headingSource??'',ax,ay,az};
+}
+
+/* =========================================================
+   ZONA REAL SEGÚN LAYOUT
+========================================================= */
+function localToPlanCoords(lx,ly,cfg=layoutConfig){
+  /* Primero convertimos el vector local al sistema del PNG y luego lo
+     rotamos alrededor del origen. Esto permite corregir escala/origen/ángulo
+     sin tocar x/y del tracker. */
+  const dx=-ly*cfg.scale;
+  const dy=-lx*cfg.scale;
+  const a=cfg.rotationDeg*Math.PI/180;
+  const rdx=dx*Math.cos(a)-dy*Math.sin(a);
+  const rdy=dx*Math.sin(a)+dy*Math.cos(a);
+  return {x:cfg.originX+rdx,y:cfg.originY+rdy};
+}
+
+function getStoreZoneName(lx,ly,cfg=layoutConfig){
+  const p=localToPlanCoords(lx,ly,cfg);
+  let best=null,bestMeters=Infinity;
+  for(const z of STORE_ZONE_ANCHORS){
+    const dpx=Math.hypot(p.x-z.px,p.y-z.py);
+    const dm=dpx/cfg.scale;
+    if(dm<bestMeters){bestMeters=dm;best=z;}
+  }
+  if(best && bestMeters<=best.radiusM) return best.name;
+  return 'ZONA SIN DEFINIR';
+}
+
+/* PARADAS V1.8 — congelación + reanudación sostenida */
+function vectorForStep(step){
+  const turn=shortestAngle(routeStartNavHeading,navHeading);
+  const angle=turn*Math.PI/180;
+  return {dx:Math.sin(angle)*step,dy:Math.cos(angle)*step,step};
+}
+function applyVector(v){x+=v.dx;y+=v.dy;totalDistance+=v.step;}
+function makeBuffer(){return {startNow:null,startElapsed:null,dx:0,dy:0,distance:0};}
+function addToBuffer(buf,v,now,elapsed){
+  if(buf.startNow===null){buf.startNow=now;buf.startElapsed=elapsed;}
+  buf.dx+=v.dx;buf.dy+=v.dy;buf.distance+=v.step;
+}
+function flushBuffer(buf){
+  if(!buf)return 0;
+  x+=buf.dx;y+=buf.dy;totalDistance+=buf.distance;
+  return buf.distance;
+}
+
+function processMovementAndStops(energy,distanceEnergyNet,proposedStep,elapsed,now){
+  const v=vectorForStep(proposedStep);
+
+  /* Parada confirmada: posición congelada hasta que exista movimiento
+     claro durante 0.75 s y al menos 25 cm estimados. */
+  if(activeStop){
+    if(energy>=RESUME_ENERGY_THRESHOLD && distanceEnergyNet>=RESUME_ENERGY_THRESHOLD){
+      if(!resumeCandidate)resumeCandidate=makeBuffer();
+      addToBuffer(resumeCandidate,v,now,elapsed);
+      const sustained=now-resumeCandidate.startNow>=RESUME_CONFIRM_MS;
+      const enoughDistance=resumeCandidate.distance>=RESUME_MIN_DISTANCE_M;
+      if(sustained&&enoughDistance){
+        const buffered=resumeCandidate;
+        const resumeAt=buffered.startElapsed;
+        finishActiveStop(resumeAt);
+        const restored=flushBuffer(buffered);
+        resumeCandidate=null;
+        return {appliedStep:restored,state:'RESUMED'};
+      }
+    }else{
+      resumeCandidate=null; // golpe o vibración breve: se descarta
     }
-  }, 2000);
+    const zn=activeStop.storeZone||getStoreZoneName(activeStop.x,activeStop.y);
+    activeStopEl.textContent='🛑 '+zn+' · PARADA';
+    return {appliedStep:0,state:'STOP_FROZEN'};
+  }
+
+  /* Candidato de parada: también congelamos temporalmente. Si resulta ser
+     una falsa alarma, restauramos exactamente el desplazamiento guardado. */
+  if(stopCandidate){
+    addToBuffer(stopCandidate.buffer,v,now,elapsed);
+    if(energy>STOP_ENTER_ENERGY){
+      const restored=flushBuffer(stopCandidate.buffer);
+      stopCandidate=null;
+      return {appliedStep:restored,state:'MOVING'};
+    }
+    if(now-stopCandidate.startTime>=STOP_CONFIRM_SECONDS*1000){
+      activeStop={number:stops.length+1,startElapsed:stopCandidate.elapsed,startDistance:stopCandidate.distance,x:stopCandidate.x,y:stopCandidate.y};
+      activeStop.storeZone=getStoreZoneName(activeStop.x,activeStop.y);
+      stopCandidate=null;
+      resumeCandidate=null;
+      activeStopEl.textContent='🛑 '+activeStop.storeZone+' activa';
+      return {appliedStep:0,state:'STOP_FROZEN'};
+    }
+    return {appliedStep:0,state:'STOP_CANDIDATE'};
+  }
+
+  if(energy<=STOP_ENTER_ENERGY){
+    stopCandidate={startTime:now,elapsed,distance:totalDistance,x,y,buffer:makeBuffer()};
+    addToBuffer(stopCandidate.buffer,v,now,elapsed);
+    return {appliedStep:0,state:'STOP_CANDIDATE'};
+  }
+
+  applyVector(v);
+  return {appliedStep:proposedStep,state:'MOVING'};
+}
+function finishActiveStop(endElapsed=null){if(!activeStop)return;const elapsed=endElapsed!==null?endElapsed:(performance.now()-routeStartTime)/1000;const s={number:activeStop.number,start:activeStop.startElapsed,duration:Math.max(0,elapsed-activeStop.startElapsed),distance:activeStop.startDistance,x:activeStop.x,y:activeStop.y};s.storeZone=getStoreZoneName(s.x,s.y);stops.push(s);stoppedSeconds+=s.duration;activeStop=null;resumeCandidate=null;activeStopEl.textContent='Sin parada activa.';assignStopToZone(s);refreshStops();refreshZones();}
+function assignStopToZone(s){let best=null,bestD=Infinity;for(const z of zones){const d=Math.hypot(s.x-z.x,s.y-z.y);if(d<bestD){bestD=d;best=z;}}if(best&&bestD<=ZONE_RADIUS_METERS){best.visits++;best.dwell+=s.duration;best.x=(best.x*(best.visits-1)+s.x)/best.visits;best.y=(best.y*(best.visits-1)+s.y)/best.visits;s.zone=best.id;}else{const z={id:'Z'+(zones.length+1),x:s.x,y:s.y,visits:1,dwell:s.duration};zones.push(z);s.zone=z.id;}}
+function refreshStops(){stopCountEl.textContent=stops.length;stoppedTimeEl.textContent=stoppedSeconds.toFixed(0);if(!stops.length){stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';return;}stopListEl.innerHTML=stops.map(s=>'<div class="stopRow"><div><span class="badge">'+s.number+'</span></div><div><strong>'+getStoreZoneName(s.x,s.y,layoutConfig)+'</strong><br>'+clock(s.start)+'</div><div><strong>'+s.duration.toFixed(1)+' s</strong></div></div>').join('');}
+function refreshZones(){if(!zones.length){zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';return;}zoneListEl.innerHTML=zones.map(z=>'<div class="zoneRow"><div><strong>'+z.id+'</strong></div><div>'+z.visits+' visita'+(z.visits===1?'':'s')+'</div><div><strong>'+z.dwell.toFixed(0)+' s</strong></div></div>').join('');}
+
+/* DIBUJO */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#f7f7f7';ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  /* El plano se gira 90° en pantalla para aprovechar el formato vertical
+     del teléfono sin alterar sus coordenadas internas. */
+  let planScale=1,planDX=0,planDY=0;
+  if(storePlanLoaded){
+    planScale=Math.min(canvas.width/storePlan.height,canvas.height/storePlan.width);
+    const rotW=storePlan.height*planScale;
+    const rotH=storePlan.width*planScale;
+    planDX=(canvas.width-rotW)/2;
+    planDY=(canvas.height-rotH)/2;
+    ctx.save();
+    ctx.globalAlpha=.78;
+    ctx.translate(planDX+rotW,planDY);
+    ctx.rotate(Math.PI/2);
+    ctx.drawImage(storePlan,0,0,storePlan.width*planScale,storePlan.height*planScale);
+    ctx.restore();
+  }
+
+  /* Coordenadas relativas del tracker -> coordenadas del PNG del local.
+     El carrito arranca en el punto habitual mirando hacia el interior (oeste).
+     x local = derecha/izquierda del carrito; y local = avance. */
+  const localToPlan=(lx,ly)=>localToPlanCoords(lx,ly,layoutConfig);
+  const planToScreen=(px,py)=>({
+    x:planDX+(storePlan.height-py)*planScale,
+    y:planDY+px*planScale
+  });
+  const toScreen=(lx,ly)=>{const p=localToPlan(lx,ly);return planToScreen(p.x,p.y);};
+
+  /* Grilla local cada 2 m, muy suave. */
+  if(storePlanLoaded){
+    ctx.save();ctx.strokeStyle='rgba(70,70,70,.10)';ctx.lineWidth=1;
+    for(let gx=-40;gx<=40;gx+=2){
+      const a=toScreen(gx,-10),b=toScreen(gx,90);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    for(let gy=-10;gy<=90;gy+=2){
+      const a=toScreen(-40,gy),b=toScreen(40,gy);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  if(route.length>1){
+    ctx.strokeStyle='#15965f';ctx.lineWidth=8;ctx.lineCap='round';ctx.lineJoin='round';
+    const p0=toScreen(route[0].x,route[0].y);ctx.beginPath();ctx.moveTo(p0.x,p0.y);
+    for(let i=1;i<route.length;i++){const p=toScreen(route[i].x,route[i].y);ctx.lineTo(p.x,p.y);}ctx.stroke();
+  }
+
+  const origin=toScreen(0,0);
+  ctx.fillStyle='#dc3545';ctx.beginPath();ctx.arc(origin.x,origin.y,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#222';ctx.font='bold 15px sans-serif';ctx.fillText('INICIO',origin.x+11,origin.y-9);
+
+  stops.forEach(s=>{
+    const p=toScreen(s.x,s.y),r=Math.min(27,10+s.duration*.2);
+    ctx.fillStyle='rgba(220,53,69,.90)';ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#111';ctx.font='bold 13px sans-serif';
+    const zoneLabel=getStoreZoneName(s.x,s.y,layoutConfig);
+    ctx.fillText(zoneLabel,p.x+r+4,p.y-2);
+    ctx.font='12px sans-serif';ctx.fillText(s.duration.toFixed(0)+'s',p.x+r+4,p.y+14);
+  });
+
+  if(route.length){const last=route[route.length-1],p=toScreen(last.x,last.y);ctx.fillStyle='#198754';ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.fill();}
+
+  if(!storePlanLoaded){ctx.fillStyle='#666';ctx.font='18px sans-serif';ctx.fillText('Cargando layout-gran-union.png…',30,50);}
+}
+
+function resetRouteOnly(){recording=false;route=[];stops=[];zones=[];stopCandidate=null;activeStop=null;resumeCandidate=null;stoppedSeconds=0;totalDistance=0;rawDistanceDiagTotal=0;filteredDistanceBaseTotal=0;x=0;y=0;lockedHeading=null;navHeading=null;routeStartNavHeading=null;turning=false;compoundTurn=false;turnCandidateSince=null;turnStableSince=null;turnBridgeUntil=null;slowTurning=false;slowTurnCandidateSince=null;slowTurnStableSince=null;turnRawHeading=null;turnEntryHeading=null;magnitudeBuffer=[];distanceEnergy=0;timeEl.textContent='0';distanceEl.textContent='0.0';rawDistanceDiagEl.textContent='0.0';filteredDistanceDiagEl.textContent='0.0';usedDistanceDiagEl.textContent='0.0';adaptiveDistanceGain=1.0;currentDistanceMode='NORMAL';distanceGainDiagEl.textContent='1.00×';distanceModeDiagEl.textContent='NORMAL';lastUiRefresh=0;lastDraw=0;turnEl.textContent='---';turnStateEl.textContent='---';stopCountEl.textContent='0';stoppedTimeEl.textContent='0';activeStopEl.textContent='Sin parada activa.';stopListEl.innerHTML='<div class="note">Todavía no hay paradas.</div>';zoneListEl.innerHTML='<div class="note">Todavía no hay zonas.</div>';draw();}
+
+/* CSV — único archivo completo: tracking + proyección al layout + zonas */
+downloadCSV.addEventListener('click',()=>{
+  if(!route.length)return;
+  const headers=['time','source','raw_heading','filtered_heading','nav_heading','turn','heading_rate','heading_disagreement','turn_state','stop_state','x_m','y_m','distance_step','total_distance','raw_distance_step','filtered_base_step','raw_distance_total','filtered_base_total','distance_recovery_gain','distance_mode','energy','energy_fast','ax','ay','az','layout_scale_px_per_m','layout_origin_x','layout_origin_y','layout_rotation_deg','plan_x_px','plan_y_px','store_zone'];
+  let csv=headers.join(',')+'\n';
+  for(const r of route){
+    const p=localToPlanCoords(r.x,r.y,layoutConfig);
+    const zone=getStoreZoneName(r.x,r.y,layoutConfig);
+    const map={x_m:r.x,y_m:r.y,distance_step:r.step,total_distance:r.distance,layout_scale_px_per_m:layoutConfig.scale,layout_origin_x:layoutConfig.originX,layout_origin_y:layoutConfig.originY,layout_rotation_deg:layoutConfig.rotationDeg,plan_x_px:p.x,plan_y_px:p.y,store_zone:zone};
+    csv+=headers.map(k=>{const v=k in map?map[k]:r[k];return typeof v==='number'?v.toFixed(5):(v??'');}).join(',')+'\n';
+  }
+  csv+='\nSTOP_NUMBER,STORE_ZONE,AUTO_CLUSTER,START_TIME,DURATION,X_M,Y_M,DISTANCE,PLAN_X_PX,PLAN_Y_PX\n';
+  for(const s of stops){const p=localToPlanCoords(s.x,s.y,layoutConfig);csv+=[s.number,getStoreZoneName(s.x,s.y,layoutConfig),s.zone||'',s.start.toFixed(3),s.duration.toFixed(2),s.x.toFixed(4),s.y.toFixed(4),s.distance.toFixed(3),p.x.toFixed(2),p.y.toFixed(2)].join(',')+'\n';}
+  csv+='\nZONE,VISITS,DWELL_SECONDS,X_M,Y_M,STORE_ZONE\n';
+  for(const z of zones)csv+=[z.id,z.visits,z.dwell.toFixed(2),z.x.toFixed(4),z.y.toFixed(4),getStoreZoneName(z.x,z.y,layoutConfig)].join(',')+'\n';
+  csv+='\nLAYOUT_SCALE_PX_PER_M,LAYOUT_ORIGIN_X,LAYOUT_ORIGIN_Y,LAYOUT_ROTATION_DEG\n'+[layoutConfig.scale.toFixed(3),layoutConfig.originX.toFixed(1),layoutConfig.originY.toFixed(1),layoutConfig.rotationDeg.toFixed(3)].join(',')+'\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='tracker-mg-v212.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 });
+
+function normalizeDegrees(d){return((d%360)+360)%360;}
+function shortestAngle(from,to){return((to-from+540)%360)-180;}
+function clock(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
+draw();
 </script>
 </body>
 </html>
